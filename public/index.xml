@@ -1,16 +1,19 @@
 <rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
     <channel>
-        <title>My New Hugo Site</title>
+        <title>Hamza Masood</title>
         <link>http://example.org/</link>
-        <description>My New Hugo Site</description>
+        <description>Hamza Masood</description>
         <generator>Hugo -- gohugo.io</generator><language>en</language>
             <atom:link href="http://example.org/index.xml" rel="self" type="application/rss+xml" />
         <item>
-    <title>First_post</title>
+    <title>Docker Overview</title>
     <link>http://example.org/posts/first_post/</link>
     <pubDate>Mon, 01 Jan 0001 00:00:00 &#43;0000</pubDate><guid>http://example.org/posts/first_post/</guid>
-    <description><![CDATA[Docker: Unleashing the Power of Containerization in Modern Computing In the fast-paced world of software development, agility and efficiency are paramount. Enter Docker, a game-changing technology that has redefined how we build, deploy, and manage applications. In this blog post, we&rsquo;ll delve into the compelling reasons why Docker has become an indispensable tool in modern computing.
-Eliminating &ldquo;It Works on My Machine&rdquo; Syndrome One of Docker&rsquo;s most notable strengths is its ability to ensure consistency across different environments.]]></description>
+    <description><![CDATA[Why Do You Need Docker? Let&rsquo;s say you need to create an application: The web server is created using nodejs, express.
+The database is created using mongoDB.
+The messaging system is created using redis.
+Finally, you might also need an orchestration system such as Ansible.
+Without using Docker, you may come across a number of issues: The compatability of the various application components with the underlying OS. For example, certain versions of the services might not be compatible with the operating system.]]></description>
 </item>
 </channel>
 </rss>

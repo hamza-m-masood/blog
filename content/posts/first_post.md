@@ -1,34 +1,39 @@
 +++
-title = 'First_post'
+title = 'Docker Overview'
+author = 'Hamza Masood'
 +++
 
-Docker: Unleashing the Power of Containerization in Modern Computing
-In the fast-paced world of software development, agility and efficiency are paramount. Enter Docker, a game-changing technology that has redefined how we build, deploy, and manage applications. In this blog post, we'll delve into the compelling reasons why Docker has become an indispensable tool in modern computing.
+## Why Do You Need Docker?
 
-1. Eliminating "It Works on My Machine" Syndrome
-   One of Docker's most notable strengths is its ability to ensure consistency across different environments. By encapsulating an application and its dependencies into a container, developers can rest assured that what works on their local machine will work identically in any environment, from development to production. This eradicates the notorious "It works on my machine" frustration.
+### Let's say you need to create an application:
+The web server is created using nodejs, express.\
+The database is created using mongoDB.\
+The messaging system is created using redis.\
+Finally, you might also need an orchestration system such as Ansible. 
 
-2. Fortified Security through Isolation
-   Docker containers operate in isolated environments, offering an additional layer of security. Each container has its own file system, networking, and isolated process space. This isolation extends to the host system, making it significantly more challenging for malicious code to compromise the underlying infrastructure. Docker's security features are a boon for safeguarding applications and data.
 
-3. Efficiency in Resource Utilization
-   Docker containers are exceptionally lightweight, as they share the host system's kernel. This leads to efficient utilization of resources, enabling higher application density on a given host. This translates to cost savings, reduced infrastructure requirements, and a smaller environmental footprint. Docker empowers businesses to optimize resource usage without compromising performance.
+### Without using Docker, you may come across a number of issues:
 
-4. Swift and Seamless Deployment
-   Docker streamlines the deployment process, allowing applications to be packaged along with their dependencies and configurations. This means deploying an application on a new system or scaling it to meet increased demand is a streamlined operation. Moreover, Docker's compatibility with continuous integration and continuous deployment (CI/CD) pipelines accelerates development cycles.
+1. The compatability of the various application components with the underlying OS. For example, certain versions of the services might not be compatible with the operating system. 
+2. The compatibility of each service with the underlying libraries of the operating system. For example, one service might need a version of a library in the operating system while another service might need some other version. 
+3. If the architecture of your application stack changes then you would have to step through these issues once again making sure everything is compatible.
+   {{< admonition type=note open=true >}}
+   The issues listed above are also known as **Matrix Hell**.
+   {{< /admonition >}}
 
-5. Microservices Pioneering
-   In the era of microservices, Docker is a linchpin. It enables the creation of lightweight, modular services that can be managed and scaled independently. This approach fosters faster development cycles and permits the deployment of specific services as needed. Docker empowers organizations to embrace microservices architecture with confidence.
 
-6. Empowering Developer Productivity
-   Docker simplifies onboarding for new developers. With a Dockerized application, they can quickly set up a consistent development environment, eliminating the headache of configuration issues. This accelerates the onboarding process, enhances collaboration, and ensures everyone works in a standardized environment, boosting overall productivity.
+4. Each developer needs to make sure that they correct configure their operating system in order to run the application. 
+5. You might also have different environments such as development, test, and production. With this method you could not confidently guarantee that the application is running the same way in all three environments.
 
-7. Unmatched Portability
-   Docker containers can run on any machine with Docker installed, regardless of the underlying operating system. This portability empowers developers to confidently build applications, knowing they will run consistently across various environments, from a developer's laptop to a production server or cloud-based platform.
+## What Can It Do?
 
-8. Thriving Ecosystem and Community
-   Docker boasts a vibrant ecosystem and a massive community of developers and enthusiasts. This translates to a wealth of resources, including a vast repository of pre-built containers, official images, and a diverse array of third-party tools. The active community ensures Docker remains at the forefront of containerization technology.
+Taking the above issues into account, Docker finds a way to solve these three problems:
+1. It resolves the compatibility issue.
+2. It allows you to modify one component of the application without effecting another. 
+3. It allows you to change the architecture of your application without having to worry about the underlying operating system. 
 
-In summary, Docker has emerged as an indispensable tool in modern computing. Its ability to provide consistency, security, resource efficiency, and facilitate rapid deployment has made it a cornerstone of contemporary software development practices. As the technology landscape continues to evolve, Docker is poised to play an even more pivotal role in shaping the future of computing.
+With Docker you are able to run each component of the application in a seperate container with it's own dependencies/libraries.
 
-If you haven't yet embraced Docker, now is the opportune moment to dive in and unlock its full potential for your development projects. The benefits it brings to the table are bound to elevate your software development journey to new heights.
+## What are Containers?
+
+Containers are isolated environments that have their own processes, services, network interfaces etc... just like virtual machines, except, they all share the same operating system kernel.
