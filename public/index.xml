@@ -1,0 +1,16 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>My New Hugo Site</title>
+        <link>http://example.org/</link>
+        <description>My New Hugo Site</description>
+        <generator>Hugo -- gohugo.io</generator><language>en</language>
+            <atom:link href="http://example.org/index.xml" rel="self" type="application/rss+xml" />
+        <item>
+    <title>First_post</title>
+    <link>http://example.org/posts/first_post/</link>
+    <pubDate>Mon, 01 Jan 0001 00:00:00 &#43;0000</pubDate><guid>http://example.org/posts/first_post/</guid>
+    <description><![CDATA[Docker: Unleashing the Power of Containerization in Modern Computing In the fast-paced world of software development, agility and efficiency are paramount. Enter Docker, a game-changing technology that has redefined how we build, deploy, and manage applications. In this blog post, we&rsquo;ll delve into the compelling reasons why Docker has become an indispensable tool in modern computing.
+Eliminating &ldquo;It Works on My Machine&rdquo; Syndrome One of Docker&rsquo;s most notable strengths is its ability to ensure consistency across different environments.]]></description>
+</item>
+</channel>
+</rss>
