@@ -36,4 +36,26 @@ With Docker you are able to run each component of the application in a seperate 
 
 ## What are Containers?
 
-Containers are isolated environments that have their own processes, services, network interfaces etc... just like virtual machines, except, they all share the same operating system kernel.
+Containers are isolated environments that have their own processes, services, network interfaces etc... just like virtual machines, except, they all share the same operating system kernel. You just need to write the Dokcer configuration once, and can then easily replicate the environment. The other developer just has to make sure that they also have Docker installed on their system.
+
+## Operating System and Sharing The Kernel
+Looking at an example operating system such as ubuntu, we can see that it sits on top of a Kernel. The Kernel remains the same while the software that sits above it is what constitutes as the operating system. This is where you have the user interface, drivers, compilers etc... I stated in the previous paragraph that Docker shares the same operating system kernel. What I mean by that is Docker can run any underlying OS in the container while sharing the same Kernel with other containers. There is one exception to this rule if you are running containers on a Linux kernel. You will not be able to run Windows containers. For windows containers, you would need to run a windows server. 
+
+## Docker vs Virtual Machines
+Docker runs on an operating system, which sits on top of a kernel, which then sits on top of hardware infrastructure. You can then build containers with Docker, with their  own separate, and isolated libraries and dependencies. 
+
+For Virtual machines, you have Hypervisors (such as ESX) that sit on top of hardware infrastructure. Each virtual machine gets a portion of memory and processing power through the hypervisor to run it's own kernel and operating system. 
+
+This results in higher utilization of memory, CPU, and disk space, since each VM is heavy, whereas Docker containers are lighter and usually megabytes in size. 
+
+Since Docker containers are lighter, it allows them to boot up much faster than VMs.
+
+It is also important to note that Docker has less isolation, since it is sharing resources from a Kernel, while VMs have their own separate kernel. 
+
+Finally, VMs can run all sorts of operating systems on the same Hypervisor such as windows and linux. Whereas on Docker, you would have to choose the types of operating systems you want to run beforehand, since Docker relies on the underlying operating system.
+
+## Using a Virtual Docker Host
+It is possible to run Docker on a virtual machine. Whit this way, you can take advantage of both running virtual machines and Docker! You will not have to provision that many virtual machines. Instead of provisioning virtual machines for each application, you would now only hae to provision virtual machines to host containers.
+
+## How Can I Run Docker?
+Once Docker is installed, you can pull Docker Images from a Docker repository such as [Docker Hub](https://hub.docker.com/).   
