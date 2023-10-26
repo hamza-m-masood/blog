@@ -3,7 +3,8 @@
     xmlns:xhtml="http://www.w3.org/1999/xhtml"
     ><url>
             <loc>http://example.org/categories/</loc></url><url>
-            <loc>http://example.org/posts/first_post/</loc></url><url>
+            <loc>http://example.org/posts/docker-commands/</loc></url><url>
+            <loc>http://example.org/posts/docker-overview/</loc></url><url>
             <loc>http://example.org/</loc></url><url>
             <loc>http://example.org/offline/</loc></url><url>
             <loc>http://example.org/posts/</loc></url><url>

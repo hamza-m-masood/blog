@@ -4,9 +4,15 @@
         <link>http://example.org/posts/</link>
         <description>All Posts | Hamza Masood</description>
         <generator>Hugo -- gohugo.io</generator><language>en</language><atom:link href="http://example.org/posts/" rel="self" type="application/rss+xml" /><item>
+    <title>Docker Commands</title>
+    <link>http://example.org/posts/docker-commands/</link>
+    <pubDate>Mon, 01 Jan 0001 00:00:00 &#43;0000</pubDate><guid>http://example.org/posts/docker-commands/</guid>
+    <description><![CDATA[Basic Commands ]]></description>
+</item>
+<item>
     <title>Docker Overview</title>
-    <link>http://example.org/posts/first_post/</link>
-    <pubDate>Mon, 01 Jan 0001 00:00:00 &#43;0000</pubDate><guid>http://example.org/posts/first_post/</guid>
+    <link>http://example.org/posts/docker-overview/</link>
+    <pubDate>Mon, 01 Jan 0001 00:00:00 &#43;0000</pubDate><guid>http://example.org/posts/docker-overview/</guid>
     <description><![CDATA[Why Do You Need Docker? Let&rsquo;s say you need to create an application: The web server is created using nodejs, express.
 The database is created using mongoDB.
 The messaging system is created using redis.

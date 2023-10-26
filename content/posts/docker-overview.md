@@ -59,3 +59,13 @@ It is possible to run Docker on a virtual machine. Whit this way, you can take a
 
 ## How Can I Run Docker?
 Once Docker is installed, you can pull Docker Images from a Docker repository such as [Docker Hub](https://hub.docker.com/).   
+
+## Container vs. Image
+An image is a template that you can use in order to create one or more images. Containers are instances of images that have their own set of processes and environments. You can create your own image and push it to Docker hub for it to be publicly avaialbe.
+
+## Devops and Docker
+Previously, developers had to make a guide with the program in order for the operations team to manage the program. Since the oeprations team did not develop the program, they would struggle to run and maintain it. Docker helps a lot in this case, since the developer can now create an image file with the program. Containers are then built from the image. The usability and maintainability becomes much more manageable. This is a single example how Docker streamlines the process between development and operations. 
+
+
+
+
