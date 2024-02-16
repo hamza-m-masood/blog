@@ -1,7 +1,26 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
-    <channel>
-        <title>Tags - Tag - Hamza Masood</title>
-        <link>http://example.org/tags/</link>
-        <description>Tags - Tag - Hamza Masood</description>
-        <generator>Hugo -- gohugo.io</generator><language>en</language><atom:link href="http://example.org/tags/" rel="self" type="application/rss+xml" /></channel>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on Hamza Masood</title>
+    <link>/tags/</link>
+    <description>Recent content in Tags on Hamza Masood</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 06 Feb 2024 05:00:00 +0000</lastBuildDate>
+    <atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>containers</title>
+      <link>/tags/containers/</link>
+      <pubDate>Tue, 06 Feb 2024 05:00:00 +0000</pubDate>
+      <guid>/tags/containers/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>docker</title>
+      <link>/tags/docker/</link>
+      <pubDate>Tue, 06 Feb 2024 05:00:00 +0000</pubDate>
+      <guid>/tags/docker/</guid>
+      <description></description>
+    </item>
+  </channel>
 </rss>

@@ -1,25 +1,68 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
-    <channel>
-        <title>Hamza Masood</title>
-        <link>http://example.org/</link>
-        <description>Hamza Masood</description>
-        <generator>Hugo -- gohugo.io</generator><language>en</language>
-            <atom:link href="http://example.org/index.xml" rel="self" type="application/rss+xml" />
-        <item>
-    <title>Docker Commands</title>
-    <link>http://example.org/posts/docker-commands/</link>
-    <pubDate>Mon, 01 Jan 0001 00:00:00 &#43;0000</pubDate><guid>http://example.org/posts/docker-commands/</guid>
-    <description><![CDATA[Basic Commands ]]></description>
-</item>
-<item>
-    <title>Docker Overview</title>
-    <link>http://example.org/posts/docker-overview/</link>
-    <pubDate>Mon, 01 Jan 0001 00:00:00 &#43;0000</pubDate><guid>http://example.org/posts/docker-overview/</guid>
-    <description><![CDATA[Why Do You Need Docker? Let&rsquo;s say you need to create an application: The web server is created using nodejs, express.
-The database is created using mongoDB.
-The messaging system is created using redis.
-Finally, you might also need an orchestration system such as Ansible.
-Without using Docker, you may come across a number of issues: The compatability of the various application components with the underlying OS. For example, certain versions of the services might not be compatible with the operating system.]]></description>
-</item>
-</channel>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Hamza Masood</title>
+    <link>/</link>
+    <description>Recent content on Hamza Masood</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 06 Feb 2024 05:00:00 +0000</lastBuildDate>
+    <atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Docker Overview</title>
+      <link>/blog/docker-overview/</link>
+      <pubDate>Tue, 06 Feb 2024 05:00:00 +0000</pubDate>
+      <guid>/blog/docker-overview/</guid>
+      <description>Let&amp;rsquo;s say you need to create an application: The web server is created using nodejs, express.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>/sections/testimonial/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/sections/testimonial/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Elements</title>
+      <link>/elements/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/elements/</guid>
+      <description>Table of Contents Heading 2 Heading 3 Heading 4 Heading 5 Emphasis Button Link Paragraph Ordered List Unordered List Notice Tab Accordions Code and Syntax Highlighting Blockquote Tables Image Gallery Slider Youtube video Custom video Here is an example of headings.</description>
+    </item>
+    <item>
+      <title>John Doe</title>
+      <link>/authors/john-doe/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/authors/john-doe/</guid>
+      <description>lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</description>
+    </item>
+    <item>
+      <title>Privacy</title>
+      <link>/privacy-policy/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/privacy-policy/</guid>
+      <description>Responsibility of Contributors Lorem ipsum dolor sit amet, consectetur adipiscing elit.</description>
+    </item>
+    <item>
+      <title>Ready to build your next project with Hugo?</title>
+      <link></link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid></guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Sam Wilson</title>
+      <link>/authors/sam-wilson/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/authors/sam-wilson/</guid>
+      <description>lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</description>
+    </item>
+    <item>
+      <title>William Jacob</title>
+      <link>/authors/william-jacob/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>/authors/william-jacob/</guid>
+      <description>lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</description>
+    </item>
+  </channel>
 </rss>
