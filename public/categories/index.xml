@@ -1,1 +1,19 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Categories on Hamza Masood</title><link>https://hamza-masood.com/categories/</link><description>Recent content in Categories on Hamza Masood</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Tue, 06 Feb 2024 05:00:00 +0000</lastBuildDate><atom:link href="https://hamza-masood.com/categories/index.xml" rel="self" type="application/rss+xml"/><item><title>Docker</title><link>https://hamza-masood.com/categories/docker/</link><pubDate>Tue, 06 Feb 2024 05:00:00 +0000</pubDate><guid>https://hamza-masood.com/categories/docker/</guid><description/></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Categories on Hamza Masood</title>
+    <link>https://hamza-masood.com/categories/</link>
+    <description>Recent content in Categories on Hamza Masood</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 06 Feb 2024 05:00:00 +0000</lastBuildDate>
+    <atom:link href="https://hamza-masood.com/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Docker</title>
+      <link>https://hamza-masood.com/categories/docker/</link>
+      <pubDate>Tue, 06 Feb 2024 05:00:00 +0000</pubDate>
+      <guid>https://hamza-masood.com/categories/docker/</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>
