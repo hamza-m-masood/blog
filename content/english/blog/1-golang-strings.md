@@ -10,19 +10,18 @@ tags: ["Golang"]
 draft: false
 ---
 
-Strings in golang are represented as unicode
-Unicode represents numbers that are bigger than what fit into a byte. On the other hand, a Rune is the go equivalent of what you think of a character. A rune in golang, can also be known as a wide character in other languages. A rune can fit any logical printable character, even chinese characters!
+Strings in Go are represented as Unicode. Unicode represents numbers that are bigger than what can fit into a byte. On the other hand, a Rune is the Go equivalent of what you think of as a character. A rune in Go can also be known as a wide character in other languages. A rune can fit any logical printable character, even Chinese characters!
 
-In order to make programs more efficient we don't want to refer to every character all the time with more bytes (unicode), since a lot of the programs are just going to have english characters (ascii characters). There is an efficient way of encoding unicode called UTF8. Which is a short way of representing unicode in bytes.
+In order to make programs more efficient, we don't want to refer to every character all the time with more bytes (Unicode), since many programs will primarily use English characters (ASCII characters). There is an efficient way of encoding Unicode called UTF-8, which is a compact way of representing Unicode in bytes.
 
 {{< notice "note" >}}
-Strings are physically, the UTF8 encoding of unicode, also known as a byte in golang.
+Strings are physically the UTF-8 encoding of Unicode, also known as bytes in Go.
 {{< /notice >}}
 
-A rune is a synonym for  int32 (32 bit integer) aka unicode.</br>
-A byte is a synonym for uint8 (8 bit integer)
+A rune is a synonym for int32 (32-bit integer), also known as Unicode.
+A byte is a synonym for uint8 (8-bit integer).
 
-A string is physically a sequence of bytes and logiaclly a sequence of unicode (also known as runes). They are the UTF8 encoding of unicode characters. Also, ASCII characters fit into the range 0-127. So if you see numbers outside of this range then you know it's not ASCII.
+A string is physically a sequence of bytes and logically a sequence of Unicode (also known as runes). They are the UTF-8 encoding of Unicode characters. Also, ASCII characters fit into the range 0-127. So if you see numbers outside of this range, you know it's not ASCII.
 
 ```golang
 package main  
@@ -35,13 +34,13 @@ func main() {
     fmt.Printf(" %d", len(b))  
 }
 ```
+The output is 6.
 
-The output is `6`</br>
-Why?: The length of the string in a program is the length of the byte string that is necessary to encode in UTF8. Visually it is 5 characters, but the length is 6. If you want the length of the string, you have to ask yourself, how many bytes does the string represent?
+Why? The length of the string in a program is the length of the byte string necessary to encode it in UTF-8. Visually it is 5 characters, but the length is 6. If you want the length of the string, you have to ask yourself, how many bytes does the string represent?
 
-6 represents the length of the byte string that is necessary to encode the string to UTF8. This string is still 6 bytes in UTF8 encoding. The length of the string does not represent the number of unicode characters.
+6 represents the length of the byte string necessary to encode the string in UTF-8. This string is still 6 bytes in UTF-8 encoding. The length of the string does not represent the number of Unicode characters.
 
-To solidify this concept here are 2 slices being taken from a string:
+To solidify this concept, here are 2 slices taken from a string:
 
 ```golang
 s := "hello, world"
@@ -50,9 +49,10 @@ world := s[7:]
 ```
 Here is the graphical view of the above code:
 
-{{< image src="images/strings.png" caption="" alt="alter-text" height="" width="" position="center" command="fill" option="q100" class="img-fluid" title="image title"  webp="false" >}}
+{{< image src="images/strings.png" caption="" alt="alter-text" height="" width="" position="center" command="fill" option="q100" class="img-fluid" title="image title" webp="false" >}}
 
-s is a string descriptor. A descriptor is not a pointer, a descriptor describes something and has a pointer within it. The descriptor also includes the length of the string. Also to note, the end of the string does not have a nul byte like other programming languages.</br>
-The main takeaway here is that `s`, `hello`, and `world` are all substrings and are reusing the same immutable memory.
+s is a string descriptor. A descriptor is not a pointer; it describes something and has a pointer within it. The descriptor also includes the length of the string. Also, note that the end of the string does not have a null byte like in other programming languages.
 
-for example, if you define `t:=s` then this means `t` has the same length, and is pointing to the same bytes or area in memory but it is a different descriptor because it is named `t` and not `s`
+The main takeaway here is that s, hello, and world are all substrings and are reusing the same immutable memory.
+
+For example, if you define t := s, then this means t has the same length and is pointing to the same bytes or area in memory, but it is a different descriptor because it is named t and not s.
