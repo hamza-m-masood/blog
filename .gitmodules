@@ -1,6 +1,0 @@
-[submodule "FeelIt"]
-	path = FeelIt
-	url = https://github.com/khusika/FeelIt.git
-[submodule "themes/FeelIt"]
-	path = themes/FeelIt
-	url = https://github.com/khusika/FeelIt.git

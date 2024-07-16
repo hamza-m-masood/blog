@@ -1,8 +1,4 @@
-const fs = require("fs");
-const path = require("path");
-const themePath = path.join(__dirname, "data/theme.json");
-const themeRead = fs.readFileSync(themePath, "utf8");
-const theme = JSON.parse(themeRead);
+const theme = require("./src/config/theme.json");
 
 let font_base = Number(theme.fonts.font_size.base.replace("px", ""));
 let font_scale = Number(theme.fonts.font_size.scale);
@@ -28,9 +24,7 @@ if (theme.fonts.font_family.secondary) {
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./hugo_stats.json"],
-  safelist: [{ pattern: /^swiper-/ }],
-  darkMode: "class",
+  content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
   theme: {
     screens: {
       sm: "540px",
@@ -54,17 +48,6 @@ module.exports = {
         border: theme.colors.default.theme_color.border,
         "theme-light": theme.colors.default.theme_color.theme_light,
         "theme-dark": theme.colors.default.theme_color.theme_dark,
-        darkmode: {
-          text: theme.colors.darkmode.text_color.default,
-          light: theme.colors.darkmode.text_color.light,
-          dark: theme.colors.darkmode.text_color.dark,
-          primary: theme.colors.darkmode.theme_color.primary,
-          secondary: theme.colors.darkmode.theme_color.secondary,
-          body: theme.colors.darkmode.theme_color.body,
-          border: theme.colors.darkmode.theme_color.border,
-          "theme-light": theme.colors.darkmode.theme_color.theme_light,
-          "theme-dark": theme.colors.darkmode.theme_color.theme_dark,
-        },
       },
       fontSize: {
         base: font_base + "px",
@@ -89,13 +72,12 @@ module.exports = {
     require("@tailwindcss/forms"),
     require("tailwind-bootstrap-grid")({
       generateContainer: false,
-      gridGutterWidth: "2rem",
       gridGutters: {
-        1: "0.25rem",
-        2: "0.5rem",
-        3: "1rem",
-        4: "1.5rem",
-        5: "3rem",
+        1: "0.5rem",
+        2: "0.75rem",
+        3: "1.25rem",
+        4: "2rem",
+        5: "3.5rem",
       },
     }),
   ],

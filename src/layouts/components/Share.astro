@@ -1,0 +1,33 @@
+---
+import config from "@/config/config.json";
+import {
+  IoLogoLinkedin,
+  IoLogoGithub
+} from "react-icons/io5";
+
+const { base_url } = config.site;
+const { title, description, slug, className } = Astro.props;
+---
+
+<ul class={`${className}`}>
+  <li class="inline-block">
+    <a
+      aria-label="facebook share button"
+      href={"https://github.com/hamza-m-masood"}
+      target="_blank"
+      rel="noreferrer noopener"
+    >
+      <IoLogoGithub />
+    </a>
+  </li>
+  <li class="inline-block">
+    <a
+      aria-label="linkedin share button"
+      href={"https://www.linkedin.com/in/hamza-m-masood/"}
+      target="_blank"
+      rel="noreferrer noopener"
+    >
+      <IoLogoLinkedin />
+    </a>
+  </li>
+</ul>

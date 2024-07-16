@@ -1,12 +1,9 @@
 {
-  "plugins": ["prettier-plugin-go-template"],
   "overrides": [
     {
-      "files": ["*.html"],
+      "files": ["*.astro"],
       "options": {
-        "parser": "go-template",
-        "goTemplateBracketSpacing": true,
-        "bracketSameLine": true
+        "parser": "astro"
       }
     }
   ]
