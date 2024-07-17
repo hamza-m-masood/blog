@@ -12,6 +12,10 @@ what_i_do:
   
   - title: "DevOps"
     description: "I specialize in streamlining development and operations through automation and continuous improvement. By leveraging cutting-edge tools and methodologies, I enhance deployment processes, boost collaboration, and ensure the reliability and scalability of software systems."
+
+
+  - title: "Golang"
+    description: "Proficient in Golang, I contribute to open-source projects, building high-performance, scalable applications with a focus on efficiency and simplicity. My experience includes developing microservices, optimizing concurrency, and creating robust backend systems that drive innovation in the open-source community."
   
 ---
  I specialize in Cloud-Native and Kubernetes. I’m also a Free/Open source enthusiast. My favorite topics are DevOps transformation, automation, data, and metrics.
