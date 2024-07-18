@@ -12,9 +12,8 @@ Strings in Go are represented as Unicode. Unicode represents numbers that are bi
 
 In order to make programs more efficient, we don't want to refer to every character all the time with more bytes (Unicode), since many programs will primarily use English characters (ASCII characters). There is an efficient way of encoding Unicode called UTF-8, which is a compact way of representing Unicode in bytes.
 
-{{< notice "note" >}}
-Strings are physically the UTF-8 encoding of Unicode, also known as bytes in Go.
-{{< /notice >}}
+
+<Notice type="note">Strings are physically the UTF-8 encoding of Unicode, also known as bytes in Go.</Notice>
 
 A rune is a synonym for int32 (32-bit integer), also known as Unicode.
 A byte is a synonym for uint8 (8-bit integer).
@@ -47,7 +46,7 @@ world := s[7:]
 ```
 Here is the graphical view of the above code:
 
-{{< image src="images/strings.png" caption="" alt="alter-text" height="" width="" position="center" command="fill" option="q100" class="img-fluid" title="image title" webp="false" >}}
+![Alt text here](/images/posts/go-string.svg)
 
 s is a string descriptor. A descriptor is not a pointer; it describes something and has a pointer within it. The descriptor also includes the length of the string. Also, note that the end of the string does not have a null byte like in other programming languages.
 
