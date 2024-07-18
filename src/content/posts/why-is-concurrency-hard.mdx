@@ -1,0 +1,33 @@
+---
+title: "Why Is Concurrency Hard?"
+description: "Why Is Concurrency Hard?"
+date: 2024-07-18T05:00:00Z
+image: "/images/posts/concurrency.png"
+categories: ["go", "concurrency"]
+authors: ["Hamza Masood"]
+tags: ["go, concurrency"]
+draft: false
+---
+
+Concurrency can be extrememly difficult to get right. Bugs can occur even after many iterations. Bugs can also occur after some change in timing from heavier disk utilization or more users logging in.
+
+Running into concurrency issues is so common that we are now able to label common pitfalls. Below I have listed the most common issues of working with concurrency:
+
+# Race Conditions
+A race condition occurs when two or more processes must execute in a specific order, but the program allows for the operations to occur in any order, or an order that causes an error.
+A classic example is one concurrent operation trying to read from a variable while (potentially) at the same time another concurrent operation is trying to write to it.
+```go showLineNumbers
+package main
+
+import "fmt"
+
+func main() {
+	var data int
+	go func() {
+		data++
+	}()
+	if data == 0 {
+		fmt.Printf("the value is %v", data)
+	}
+}
+```

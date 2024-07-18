@@ -7,6 +7,8 @@ import { defineConfig, squooshImageService } from "astro/config";
 import remarkCollapse from "remark-collapse";
 import remarkToc from "remark-toc";
 import config from "./src/config/config.json";
+import astroExpressiveCode from 'astro-expressive-code'
+import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
 
 // https://astro.build/config
 export default defineConfig({
@@ -34,6 +36,9 @@ export default defineConfig({
         "@/shortcodes/Tabs",
         "@/shortcodes/Tab",
       ],
+    }),
+    astroExpressiveCode({
+      plugins: [pluginLineNumbers()],
     }),
     mdx(),
   ],
