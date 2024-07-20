@@ -5,17 +5,13 @@ date: 2024-07-18T05:00:00Z
 image: "/images/posts/concurrency.png"
 categories: ["go", "concurrency"]
 authors: ["Hamza Masood"]
-tags: ["go, concurrency"]
+tags: ["go", "concurrency"]
 draft: false
 ---
 
 Concurrency can be extrememly difficult to get right. Bugs can occur even after many iterations. Bugs can also occur after some change in timing from heavier disk utilization or more users logging in.
 
 Running into concurrency issues is so common that we are now able to label common pitfalls. Below I have listed the most common issues of working with concurrency:
-
-# Prerequisites
-1. critical section
-2. context
 
 # Race Conditions
 A race condition occurs when two or more processes must execute in a specific order, but the program allows for the operations to occur in any order, or an order that causes an error.
@@ -47,7 +43,7 @@ The output could be 1 because line 10 could run before line 8, and line 8 could 
 
 As you can see even a small snippet of code can lead to many outcomes. This is why every outcome must be thought of in order to not have a race conditions.
 
-Thinking about a large passage of time between critical sections may help when reasoning about the different outcomes. For example, what would happen if an hour passed before the goroutine at line 7 could start? What would would happen if an hour passed after the check for the data variable at line 10?
+Thinking about a large passage of time between nondeterministic operations may help when reasoning about the different outcomes. For example, what would happen if an hour passed before the goroutine at line 7 could start? What would would happen if an hour passed after the check for the data variable at line 10?
 
 Having a data race is quite hard to spot if you do not have all the outcomes noted down like above. This can be quite challenging in moderate to large size codebase. Another technique that may help for debugging would be to add sleep statements at different areas of the program. For example, a sleep statement could be added after line 7 before the data increment. This will most likely give enough time for the if statement to run before the data is incremented. But please remember:
 
@@ -82,5 +78,59 @@ Multiple steps are completed from a simple statement.Each step within the proces
 Most statements are not atomic. Thus proving another reason why concurrency can be very challenging.
 
 # Memory Access Synchronization
+
+There is a difference between a **data race** and a **race condition**. A race condition occurs when the order of executions are nondeterministic. A data race occurs when many sections of the program are trying to access the same data. A need arises to synchroinze memory when there is a data race.
+
+<Notice type="note">
+If a section in a program is accessing a shared piece of memory, then it is known as a critical section
+</Notice>
+
+Let's define all the critical sections in the following program:
+
+```go
+ var data int
+ go func() {
+ 	data++
+ }()
+ if data == 0 {
+ 	fmt.Println("the value is 0")
+ } else {
+ 	fmt.Printf("the value is %v", data)
+ }
+```
+The shared resource is the data variable on line 1
+- Line 3: The goroutine increments the data variable
+- Line 5: The if statement checks for the value of the data variable
+- Line 8: Printing of the data variable
+
+Let's try to synchronize the data with `sync.Mutex`:
+
+```go
+var memoryAccess sync.Mutex
+	var data int
+	go func() {
+		memoryAccess.Lock()
+		data++
+		memoryAccess.Unlock()
+	}()
+	memoryAccess.Lock()
+	if data == 0 {
+		fmt.Println("the value is 0")
+	} else {
+		fmt.Printf("the value is %v", data)
+	}
+	memoryAccess.Unlock()
+```
+
+I lock the access before and after the critical section. We now have fully synchronized the data access. Although we have solved the data race through synchronization, we still have a race condition. We have also introduced other problems:
+
+1. Using the `sync.Mutex` to lock data and unlock data is a **convention**. It's difficult for developers to follow convetions especially when there are time sensitive tasks that need to be done, on a moderate to large size code-base. Unfortunately, if you go ahead with using this approach then you need to make sure it is followed 100% of the time to not come across any data race problems.
+2. As mentioned before even though we have solved the data race problem, we have not solved the race condition. We have only narrowed the scope of non-determinism, but overall the order of operations is still non-deterministic. We don't know if the goroutine is going to run before or after the if statement.
+3. Ther are some performance rammifications that happen when you synchronize data. The program pauses for a short period of time on every call to Lock.
+
+Knowing what data needs to be synchronized and how frequently you need to lock data, and what size your ciritical sections should be is very difficult to judge.
+
+# Deadlocks
+
 
 
