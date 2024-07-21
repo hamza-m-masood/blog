@@ -130,7 +130,66 @@ I lock the access before and after the critical section. We now have fully synch
 
 Knowing what data needs to be synchronized and how frequently you need to lock data, and what size your ciritical sections should be is very difficult to judge.
 
-# Deadlocks
+---
 
+If all problems of the previous section are addressed then you will never get a wrong output. The following problems are for your program to always be doing work. In other words, the program has something useful to do at all times:
+
+# Deadlock
+
+A deadlock happens when all goroutines are blocked. This can happen when all goroutines are waiting for eachother. In this case, your program will not work without manual intervention. Here is an example of a deadlock:
+
+```go
+package main
+
+import (
+	"fmt"
+	"sync"
+	"time"
+)
+
+type value struct {
+	mu    sync.Mutex
+	value int
+}
+
+func main() {
+	var wg sync.WaitGroup
+	printSum := func(v1, v2 *value) {
+		defer wg.Done()
+		v1.mu.Lock()
+		defer v1.mu.Unlock()
+
+		time.Sleep(2 * time.Second)
+		v2.mu.Lock()
+		fmt.Printf("sum=%v\n", v1.value+v2.value)
+	}
+	var a, b value
+	wg.Add(2)
+	go printSum(&a, &b)
+	go printSum(&b, &a)
+	wg.Wait()
+}
+```
+The first function call to `PrintSum` locks `a` and attempts to lock `b`. The second call to `PrintSum` locks `b` and attempts to lock `a`. Both go routines are now waiting on eachother.
+
+Deadlocks can be hard to spot. A technique that can help us identify them are the Coffman Conditions. The Coffman Conditions were invented in 1971 in order to help us identify deadlocks. They state the following:
+
+- **Mutual Exclusion**: A concurrent process holds exclusive rights to a resource at any one time.
+- **Wait For Condition**: A concurrent process must simultaneously hold a resource and be waiting for an additional resource.
+- **No Preemption**: A resource held by a concurrent process can only be released by that process, so it fulfills this condition.
+- **Circular Wait**: A concurrent process (P1) must be waiting on a chain of other concurrent pro‐ cesses (P2), which are in turn waiting on it (P1), so it fulfills this final condition too.
+
+The program above fulfills all of the conditions. Hence the reason for having a deadlock.
+
+# Livelock
+
+A very famous example of a livelock would be the following:
+Imagine you were in a tight corridor. There just enough space for two people to walk. You come face to face with another person. You move left, the other person moves left as well in an attempt to walk by. You move, right, the other person moves right as well. Both people become stuck in this state of hallway shuffle moving left and right continuously!
+
+This occurs when two goroutines or concurrent processes are trying to prevent deadlock but without any communication. Livelocks are especially difficult to spot because your program can seem like it is doing work but in actuality it is just burning rubber.
+
+Livelock is a subset of a larger problem called starvation.
+
+#Starvation
 
 
