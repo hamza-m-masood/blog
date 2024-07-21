@@ -184,7 +184,7 @@ The program above fulfills all of the conditions. Hence the reason for having a 
 # Livelock
 
 A very famous example of a livelock would be the following:
-Imagine you were in a tight corridor. There just enough space for two people to walk. You come face to face with another person. You move left, the other person moves left as well in an attempt to walk by. You move, right, the other person moves right as well. Both people become stuck in this state of hallway shuffle moving left and right continuously!
+Imagine you were in a tight corridor. There is just enough space for two people to walk. You come face to face with another person. You move left, the other person moves left as well in an attempt to walk by. You move right, the other person moves right as well. Both people become stuck in this state of hallway shuffle moving left and right continuously!
 
 This occurs when two goroutines or concurrent processes are trying to prevent deadlock but without any communication. Livelocks are especially difficult to spot because your program can seem like it is doing work but in actuality it is just burning rubber.
 
