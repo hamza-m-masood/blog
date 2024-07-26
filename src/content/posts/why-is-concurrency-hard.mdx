@@ -190,6 +190,61 @@ This occurs when two goroutines or concurrent processes are trying to prevent de
 
 Livelock is a subset of a larger problem called starvation.
 
-#Starvation
+# Starvation
 
+A greedy goroutine means when one goroutine gets in the way of other goroutines. When you have a greedy goroutine, other concurrent processes can't find resources to perform their work. This is an example of starvation. A goroutine can also suffer finding resources from outside the Go program as well. Lack of CPU power, database connection, lack of memory etc.. can all lead to starvation. Starvation is relatively easy to spot when external factors are in play but can be quite difficult to spot when goroutines are competing against eachother.
 
+Here is an example of a greedy goroutine and a polite goroutine:
+
+```go
+	var wg sync.WaitGroup
+	var sharedLock sync.Mutex
+	const runtime = 1 * time.Second
+
+	greedyWorker := func() {
+		defer wg.Done()
+		var count int
+		for begin := time.Now(); time.Since(begin) <= runtime; {
+			sharedLock.Lock()
+			time.Sleep(3 * time.Nanosecond)
+			sharedLock.Unlock()
+			count++
+		}
+		fmt.Printf("Greedy worker was able to execut %v work in loops\n", count)
+	}
+
+	politeWorker := func() {
+		defer wg.Done()
+		var count int
+		for begin := time.Now(); time.Since(begin) <= runtime; {
+			sharedLock.Lock()
+			time.Sleep(1 * time.Nanosecond)
+			sharedLock.Unlock()
+
+			sharedLock.Lock()
+			time.Sleep(1 * time.Nanosecond)
+			sharedLock.Unlock()
+
+			sharedLock.Lock()
+			time.Sleep(1 * time.Nanosecond)
+			sharedLock.Unlock()
+
+			count++
+		}
+		fmt.Printf("Polite worker was able to execut %v work in loops\n", count)
+	}
+	wg.Add(2)
+	go greedyWorker()
+	go politeWorker()
+	wg.Wait()
+```
+
+Result:
+```
+Greedy worker was able to execute 1563591 work in loops
+Polite worker was able to execute 763330 work in loops
+```
+
+As we can see the greedy goroutine did much more work than the polite goroutine. This is because the greedy goroutine holds on to the shared lock much longer than is needed. The polite goroutine locks the memory only for when it needs to for it's critical sections.
+
+In this case it was quite easy to spot the starvation because we have a metric! This is why it's so important to have metrics in your program.
