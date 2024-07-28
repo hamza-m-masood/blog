@@ -9,4 +9,21 @@ tags: ["go", "concurrency"]
 draft: false
 ---
 
-Communicat Sequential Processes is a title of a paper by
+# What is CSP?
+
+Communicating Sequential Processes (CSP for short) is the title of a paper by Tony Hoare in 1984. He took it upon himself to study concurrent processes when most researchers were more worried about object oriented programming or defining how programs should be structured. In the paper, Hoare referred to a process as having an input and processing the output to result in an output. Another word for a process could be a function but at the time definitions such as a function were still being discussed. Hoare argued that createing a concurrent program with useful concurrency primitives was as as simple as creating a sequential program.
+Here are some examples from his paper:
+
+
+
+| operateion   |       Explanation |
+| :--: | :----------- |
+| cardreader?cardimage   | From cardreader, read a card and assign its value (an array of characters) to the variable cardimage |
+| *[ c:character; west?c -> east!c ]   |  Read all the characters output by west, and output them one by one to east. The repetition terminates when the process west terminates. |
+
+In the second example, you can see that the variable c is used twice for the input and the output. This is when two processes **correspond** with eachother
+
+These ideas were then further refined in a branch of mathematics called process calculus. Go has all of these concepts built into it's core. We can use it's primitives to develop concurrent code simply.
+
+# Memory Synchronization vs. Concurrency Primitives
+
