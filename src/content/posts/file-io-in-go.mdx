@@ -9,7 +9,7 @@ tags: ["go"]
 draft: false
 ---
 
-# Printing in Golang
+## Printing in Golang
 
 Go has many ways to print. All printing functions stem from the `fmt` package.
 
@@ -31,14 +31,14 @@ Third family
 - `fmt.Sprintf ` outputs to a string but also format the string.
 
 
-# File I/O Packages
+## File I/O Packages
 1. Os package: has functions to open and create files, list directories etc... and has the `File` type
 2. Io package: has utilities to read and write
 3. Bufio pakcage: provides buffered i/o scanners etc...
 4. Io/ioutil package: has extra utilities such as reading and an entire file to memory, or writing it all out at once
 5. Strconv package: has utilities to convert to/from string representations
 
-### Misc commands for files:
+## Misc commands for files:
 - Opening a file: `os.Open(fname)`
 - Copying from a file to standard output: `io.Copy(os.Stdout, file)`
 - Reading all the data from a file (without buffering): `ioutil.ReadAll(file)`
