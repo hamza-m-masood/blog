@@ -80,7 +80,7 @@ const { title, description, authors, categories, image, date, tags } =
         <Content />
       </div> -->
       <div class="grid grid-cols-1 md:grid-cols-[20%_auto] gap-10 mt-8">
-        
+
         <aside class="md:flex flex-col gap-8 hidden">
           <div
             class="sticky top-24 self-start hidden md:block transition-all duration-200"
@@ -185,5 +185,8 @@ const { title, description, authors, categories, image, date, tags } =
 <style>
   body {
     margin-left: calc(100vw - 100%); /* prevent layout shift */
+  }
+  :root {
+    scroll-behavior: smooth;
   }
 </style>
