@@ -7,14 +7,15 @@ import dateFormat from "@/lib/utils/dateFormat";
 import similerItems from "@/lib/utils/similarItems";
 import { humanize, markdownify, slugify } from "@/lib/utils/textConverter";
 import { BiCalendarEdit, BiCategoryAlt } from "react-icons/bi";
+import TableOfContents from './components/TableOfContents.astro';
 
 const allAuthors = await getSinglePage("authors");
 const posts = await getSinglePage("posts");
 const { post } = Astro.props;
+const {headings} = Astro.props;
 const similarPosts = similerItems(post, posts, post.slug);
 const { Content } = await post.render();
-const { title, description, authors, categories, image, date, tags } =
-  post.data;
+const { title, description, authors, categories, image, date, tags } = post.data;
 ---
 
 <section class="section">
@@ -77,6 +78,7 @@ const { title, description, authors, categories, image, date, tags } =
         </ul>
       </div>
 
+        <TableOfContents headings={headings} />
       <div class="col-12 mt-8 mb-2">
         {
           image && (
@@ -90,7 +92,6 @@ const { title, description, authors, categories, image, date, tags } =
           )
         }
       </div>
-
       <div class="md:col-10">
         <div class="content mb-16 text-left">
           <Content />

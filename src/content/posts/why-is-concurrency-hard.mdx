@@ -13,7 +13,7 @@ Concurrency can be extrememly difficult to get right. Bugs can occur even after 
 
 Running into concurrency issues is so common that we are now able to label common pitfalls. Below I have listed the most common issues of working with concurrency:
 
-# Race Conditions
+## Race Conditions
 A race condition occurs when two or more processes must execute in a specific order, but the program allows for the operations to occur in any order, or an order that causes an error.
 A classic example is one concurrent operation trying to read from a variable while (potentially) at the same time another concurrent operation is trying to write to it.
 ```go showLineNumbers
@@ -55,7 +55,7 @@ We have simply made it increasingly unlikely for our program to product the "inc
 
 Another technique that might help in detecting race conditions is testing your program in different environments. Data races normally tend to occur when there is a change in an environment that was not thought of like a variation in memory or CPU.
 
-# Atomicity
+## Atomicity
 
 If series of executions can in it's entirity without interruption in the defined context, then they are considered to be atomic.\
 Atomic comes from the greek word Atom. Which means indivisible. Obviously, in modern physics we know this is not true. But it does bring the point across of a process or an execution being indivisible and uninterruptable.
@@ -77,7 +77,7 @@ Multiple steps are completed from a simple statement.Each step within the proces
 
 Most statements are not atomic. Thus proving another reason why concurrency can be very challenging.
 
-# Memory Access Synchronization
+## Memory Access Synchronization
 
 There is a difference between a **data race** and a **race condition**. A race condition occurs when the order of executions are nondeterministic. A data race occurs when many sections of the program are trying to access the same data. A need arises to synchroinze memory when there is a data race.
 
@@ -134,7 +134,7 @@ Knowing what data needs to be synchronized and how frequently you need to lock d
 
 If all problems of the previous section are addressed then you will never get a wrong output. The following problems are for your program to always be doing work. In other words, the program has something useful to do at all times:
 
-# Deadlock
+## Deadlock
 
 A deadlock happens when all goroutines are blocked. This can happen when all goroutines are waiting for eachother. In this case, your program will not work without manual intervention. Here is an example of a deadlock:
 
@@ -181,7 +181,7 @@ Deadlocks can be hard to spot. A technique that can help us identify them are th
 
 The program above fulfills all of the conditions. Hence the reason for having a deadlock.
 
-# Livelock
+## Livelock
 
 A very famous example of a livelock would be the following:
 Imagine you were in a tight corridor. There is just enough space for two people to walk. You come face to face with another person. You move left, the other person moves left as well in an attempt to walk by. You move right, the other person moves right as well. Both people become stuck in this state of hallway shuffle moving left and right continuously!
@@ -190,7 +190,7 @@ This occurs when two goroutines or concurrent processes are trying to prevent de
 
 Livelock is a subset of a larger problem called starvation.
 
-# Starvation
+## Starvation
 
 A greedy goroutine means when one goroutine gets in the way of other goroutines. When you have a greedy goroutine, other concurrent processes can't find resources to perform their work. This is an example of starvation. A goroutine can also suffer finding resources from outside the Go program as well. Lack of CPU power, database connection, lack of memory etc.. can all lead to starvation. Starvation is relatively easy to spot when external factors are in play but can be quite difficult to spot when goroutines are competing against eachother.
 
