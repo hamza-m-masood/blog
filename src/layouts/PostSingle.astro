@@ -143,24 +143,20 @@ const { title, description, authors, categories, image, date, tags } =
         );
 
         if (entry.isIntersecting) {
-          index?.classList.remove("bg-slate-200", "dark:bg-slate-800"); // remove bg
           index?.classList.add(
-            "bg-indigo-600",
-            "dark:bg-indigo-700",
-            "text-white",
+            "bg-blue-100",
+            "bg-blue-100",
             "font-bold",
             "transition-colors",
-            "duration-200",
+            "duration-100",
           );
         } else {
-          index?.classList.add("bg-slate-200", "dark:bg-slate-800"); // add bg
           index?.classList.remove(
-            "bg-indigo-600",
-            "dark:bg-indigo-700",
-            "text-white",
+            "bg-blue-100",
+            "bg-blue-100",
             "font-bold",
             "transition-colors",
-            "duration-200",
+            "duration-100",
           );
         }
       });
@@ -182,6 +178,7 @@ const { title, description, authors, categories, image, date, tags } =
       observer.observe(heading);
     });
   };
+
   fnObserver();
   document.addEventListener("astro:after-swap", fnObserver);
 </script>
