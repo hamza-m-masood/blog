@@ -19,6 +19,7 @@ const { title, description, authors, categories, image, date, tags } = post.data
 ---
 
 <section class="section">
+        <TableOfContents headings={headings} />
   <div class="container">
     <article class="row justify-center">
       <div class="md:col-10 text-center">
@@ -78,7 +79,6 @@ const { title, description, authors, categories, image, date, tags } = post.data
         </ul>
       </div>
 
-        <TableOfContents headings={headings} />
       <div class="col-12 mt-8 mb-2">
         {
           image && (
