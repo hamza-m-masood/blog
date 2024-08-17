@@ -36,7 +36,7 @@ const { posts } = Astro.props;
                 {post.data.categories.map((category: string, i: number) => (
                   <li class="inline-block">
                     <a
-                      href={`/categories/${slugify(category)}`}
+                      href={`/blog/categories/${slugify(category)}`}
                       class="mr-2 hover:text-primary font-medium"
                     >
                       {humanize(category)}
@@ -50,7 +50,7 @@ const { posts } = Astro.props;
         </ul>
         <h3 class="h5">
           <a
-            href={`/${post.slug}`}
+            href={`/blog/${post.slug}`}
             class="block hover:text-primary transition duration-300"
           >
             {post.data.title}

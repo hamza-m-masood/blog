@@ -3,25 +3,25 @@ import Base from "@/layouts/Base.astro";
 import { getTaxonomy } from "@/lib/taxonomyParser.astro";
 import { humanize } from "@/lib/utils/textConverter";
 
-import { FaHashtag } from "react-icons/fa";
+const categories = await getTaxonomy("posts", "categories");
 
-const tags = await getTaxonomy("posts", "tags");
+import { BiCategoryAlt } from "react-icons/bi";
 ---
 
-<Base title={"Tags"}>
+<Base title={"Categories"}>
   <section class="section">
     <div class="container text-center">
-      <h1 class="h2 page-heading">Tags</h1>
+      <h1 class="h2 page-heading">Categories</h1>
       <ul class="space-x-4">
         {
-          tags.map((tag) => (
+          categories.map((category) => (
             <li class="inline-block">
               <a
-                href={`/tags/${tag}`}
+                href={`/blog/categories/${category}`}
                 class="rounded-lg bg-theme-light px-4 py-2 text-dark transition hover:bg-primary hover:text-white flex items-center group"
               >
-                <FaHashtag className="mr-1 text-primary group-hover:text-white transition" />
-                <>{humanize(tag || "")}</>
+                <BiCategoryAlt className="mr-1 text-primary group-hover:text-white transition h-6 w-6 scale-75" />
+                <>{humanize(category || "")}</>
               </a>
             </li>
           ))
