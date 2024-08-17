@@ -2,33 +2,33 @@
   "main": [
     {
       "name": "Home",
-      "url": "/"
+      "url": "/blog/home"
     },
     {
       "name": "About",
-      "url": "/about"
+      "url": "/blog/about"
     },
     {
       "name": "Contact",
-      "url": "/contact"
+      "url": "/blog/contact"
     },
     {
       "name": "Categories",
-      "url": "/categories"
+      "url": "/blog/categories"
     }
   ],
   "footer": [
     {
       "name": "About",
-      "url": "/about"
+      "url": "/blog/about"
     },
     {
       "name": "Contact",
-      "url": "/contact"
+      "url": "/blog/contact"
     },
     {
       "name": "Privacy Policy",
-      "url": "/privacy-policy"
+      "url": "/blog/privacy-policy"
     }
   ]
 }
