@@ -1,0 +1,364 @@
+{
+  "basics": {
+    "name": "Hamza Masood",
+    "label": "DevOps Engineer",
+    "image": "/me.jpeg",
+    "url": "https://www.hamza-masood.com",
+    "summary": "I specialize in Cloud-Native and Kubernetes. I’m also a Free/Open source enthusiast. My favorite topics are DevOps transformation, automation, data, and metrics.",
+    "theme": "default",
+    "location": {
+      "city": "Dublin",
+      "countryCode": "IE",
+      "region": "Ireland"
+    },
+    "profiles": [
+      {
+        "network": "LinkedIn",
+        "username": "hamza-m-masood",
+        "url": "https://www.linkedin.com/in/hamza-m-masood/"
+      },
+      {
+        "network": "GitHub",
+        "username": "hamza-m-masood",
+        "url": "https://github.com/hamza-m-masood"
+      }
+    ]
+  },
+  "work": [
+    {
+      "name": "Camunda",
+      "position": "DevOps Engineer",
+      "location_type": "Remote",
+      "location": "Dublin, Ireland",
+      "url": "https://camunda.com/",
+      "startDate": "2023-09-15",
+      "endDate": null,
+      "summary": "Develop Helm Charts to manage the Camunda 8 applications stack for our self-managed offering",
+      "highlights": ["todo"],
+      "responsibilities": ["todo"],
+      "achievements": ["todo"],
+      "skills": ["MySQL", "Git", "Bash"]
+    }
+  ],
+  "volunteer": [
+    {
+      "organization": "Local Coding Club",
+      "position": "Volunteer",
+      "url": "https://codingclub.com/",
+      "startDate": "2021-01-01",
+      "endDate": "2022-01-01",
+      "summary": "Helped organize coding workshops and mentored new members.",
+      "highlights": ["Awarded 'Volunteer of the Month'"]
+    }
+  ],
+  "education": [
+    {
+      "institution": "Technological University Dublin",
+      "url": "https://www.tudublin.ie/study/undergraduate/courses/business-computing-tu914/",
+      "area": "Business Computing",
+      "studyType": "Bachelor",
+      "startDate": "2016-09-01",
+      "endDate": "2020-05-01",
+      "score": "4.0"
+    }
+  ],
+  "certificates": [
+    {
+      "name": "certified kubernetes application developer",
+      "date": "2023-05-01",
+      "issuer": "Linux Academy",
+      "url": "https://www.cncf.io/training/certification/ckad/"
+    },
+    {
+      "name": "Certified Kubernetes Administrator",
+      "date": "2022-12-01",
+      "issuer": "Linux Academy",
+      "url": "https://www.cncf.io/training/certification/cka/"
+    },
+    {
+      "name": "Certified Kubernetes Security Specialist",
+      "date": "2022-12-01",
+      "issuer": "Linux Academy",
+      "url": "https://www.cncf.io/training/certification/cks/"
+    },
+    {
+      "name": "Portworx Enterprise Professional",
+      "date": "2023-12-01",
+      "issuer": "Pure Storage",
+      "url": "https://portworx.com/portworx-certified/"
+    }
+  ],
+  "skills": [
+    {
+      "name": "Kubernetes",
+      "level": "Expert",
+      "keywords": ["Design", "UI"]
+    },
+    {
+      "name": "GCP",
+      "level": "Intermediate",
+      "keywords": ["Version Control", "Collaboration", "Source Code"]
+    },
+    {
+      "name": "Kustomize",
+      "level": "Intermediate",
+      "keywords": ["Web Development", "Frontend"]
+    },
+    {
+      "name": "Azure",
+      "level": "Intermediate",
+      "keywords": ["Web Development", "Frontend", "Responsive Design"]
+    },
+    {
+      "name": "JavaScript",
+      "level": "Intermediate",
+      "keywords": ["Web Development", "Frontend", "Backend", "Fullstack"]
+    },
+    {
+      "name": "Tailwind",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "CSS Framework",
+        "Responsive Design"
+      ]
+    },
+    {
+      "name": "TypeScript",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "Backend",
+        "JavaScript Superset"
+      ]
+    },
+    {
+      "name": "Node",
+      "level": "Intermediate",
+      "keywords": ["Web Development", "Backend", "JavaScript", "Server"]
+    },
+    {
+      "name": "MySQL",
+      "level": "Intermediate",
+      "keywords": ["Databases", "SQL", "Data Storage", "Backend"]
+    },
+    {
+      "name": "Git",
+      "level": "Intermediate",
+      "keywords": ["Version Control", "Collaboration", "Source Code"]
+    },
+    {
+      "name": "Openshift",
+      "level": "Intermediate",
+      "keywords": ["Version Control", "Collaboration", "Source Code", "Git"]
+    },
+    {
+      "name": "Helm",
+      "level": "Beginner",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "React Framework",
+        "SSR",
+        "Static Generation"
+      ]
+    },
+    {
+      "name": "Argo",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "React Framework",
+        "SSR",
+        "Static Generation"
+      ]
+    },
+    {
+      "name": "Crossplane",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "React Framework",
+        "SSR",
+        "Static Generation"
+      ]
+    },
+    {
+      "name": "Docker",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "React Framework",
+        "SSR",
+        "Static Generation"
+      ]
+    },
+    {
+      "name": "Golang",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "React Framework",
+        "SSR",
+        "Static Generation"
+      ]
+    },
+    {
+      "name": "Python",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "React Framework",
+        "SSR",
+        "Static Generation"
+      ]
+    },
+    {
+      "name": "Prometheus",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "React Framework",
+        "SSR",
+        "Static Generation"
+      ]
+    },
+    {
+      "name": "Terraform",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "React Framework",
+        "SSR",
+        "Static Generation"
+      ]
+    },
+    {
+      "name": "Jenkins",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "React Framework",
+        "SSR",
+        "Static Generation"
+      ]
+    },
+    {
+      "name": "Bash",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "React Framework",
+        "SSR",
+        "Static Generation"
+      ]
+    },
+    {
+      "name": "Linux",
+      "level": "Intermediate",
+      "keywords": [
+        "Web Development",
+        "Frontend",
+        "React Framework",
+        "SSR",
+        "Static Generation"
+      ]
+    },
+    {
+      "name": "React",
+      "level": "Intermediate",
+      "keywords": ["Web Development", "Frontend", "JavaScript Library", "UI"]
+    }
+  ],
+  "languages": [
+    {
+      "language": "English",
+      "fluency": "Native speaker"
+    },
+    {
+      "language": "Arabic",
+      "fluency": "Beginner"
+    },
+    {
+      "language": "Hindi",
+      "fluency": "Intermediate"
+    }
+  ],
+  "interests": [
+    {
+      "name": "Technology",
+      "keywords": ["AI", "Blockchain"]
+    }
+  ],
+  "references": [
+    {
+      "name": "Jane Smith",
+      "reference": "Reference…"
+    }
+  ],
+  "projects": [
+    {
+      "name": "Cooking App",
+      "isActive": true,
+      "description": "A full stack cooking app with a Go backend!",
+      "highlights": [
+        "Built with golang, mongoDB and React",
+        "It has extra security features like Auth0",
+        "it can also run on kubernerets with the use of the Portworx yaml"
+      ],
+      "url": "https://github.com/hamza-m-masood/cooking-app",
+      "github": "https://github.com/hamza-m-masood/cooking-app"
+    },
+    {
+      "name": "Golang to do list",
+      "isActive": true,
+      "description": "A simple to do list in Go",
+      "highlights": ["Create", "Read", "Update", "Delete"],
+      "url": "https://github.com/hamza-m-masood/golang-todolist"
+    }
+  ],
+  "blogs": [
+    {
+      "name": "Why Is Concurrency Hard?",
+      "isActive": true,
+      "description": "Sharing the many pitfalls of concurrency and how go may remedeate some of these challenges",
+      "highlights": [
+        "Race Conditions, Atomicity",
+        "Starvation, Livelock and many more..."
+      ],
+      "url": "https://hamza-masood.com/blog/why-is-concurrency-hard/"
+    },
+    {
+      "name": "Functions in Go",
+      "isActive": true,
+      "description": "Sharing how functions work in Go",
+      "highlights": ["Pass by value", "Pointers and more.."],
+      "url": "https://hamza-masood.com/blog/functions-in-go/"
+    },
+    {
+      "name": "Docker Overview",
+      "isActive": true,
+      "description": "An introduction to Docker for complete beginners",
+      "highlights": ["What can it do?", "How can it run?"],
+      "url": "https://hamza-masood.com/blog/docker-overview/"
+    },
+    {
+      "name": "File i/o in Go",
+      "isActive": true,
+      "description": "Understanding file handling in Go",
+      "highlights": ["Printing contens of files", "Misc file commands"],
+      "url": "https://hamza-masood.com/blog/file-io-in-go/"
+    }
+  ]
+}

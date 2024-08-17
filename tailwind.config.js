@@ -1,4 +1,12 @@
 const theme = require("./src/config/theme.json");
+function withOpacity(variableName) {
+  return ({ opacityValue }) => {
+    if (opacityValue !== undefined) {
+      return `rgba(var(${variableName}), ${opacityValue})`;
+    }
+    return `rgb(var(${variableName}))`;
+  };
+}
 
 let font_base = Number(theme.fonts.font_size.base.replace("px", ""));
 let font_scale = Number(theme.fonts.font_size.scale);
@@ -38,7 +46,26 @@ module.exports = {
       padding: "2rem",
     },
     extend: {
+      textColor: {
+        skin: {
+          base: withOpacity("--color-text-base"),
+          muted: withOpacity("--color-text-muted"),
+          inverted: withOpacity("--color-text-inverted"),
+        },
+      },
+      backgroundColor: {
+        skin: {
+          fill: withOpacity("--color-fill"),
+          "button-accent": withOpacity("--color-button-accent"),
+          "button-accent-hover": withOpacity("--color-button-accent-hover"),
+          "button-muted": withOpacity("--color-button-muted"),
+        },
+      },
       colors: {
+        skin: {
+          hue: withOpacity("--color"),
+          muted: withOpacity("--muted"),
+        },
         text: theme.colors.default.text_color.default,
         light: theme.colors.default.text_color.light,
         dark: theme.colors.default.text_color.dark,
@@ -64,6 +91,16 @@ module.exports = {
       fontFamily: {
         primary: [fontPrimary, fontPrimaryType],
         secondary: [fontSecondary, fontSecondaryType],
+      },
+      ringColor: {
+        skin: {
+          fill: withOpacity("--color-fill"),
+        },
+      },
+      gradientColorStops: {
+        skin: {
+          hue: withOpacity("--color-fill"),
+        },
       },
     },
   },

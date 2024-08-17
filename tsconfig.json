@@ -17,6 +17,9 @@
       "@/shortcodes/*": ["./src/layouts/shortcodes/*"],
       "@/helpers/*": ["./src/layouts/helpers/*"],
       "@/partials/*": ["./src/layouts/partials/*"],
+      "@cv": [
+        "./cv.json"
+      ],
       "@/*": ["./src/*"]
     }
   },
