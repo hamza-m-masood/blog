@@ -120,7 +120,7 @@ export default function SearchBar({ searchList }: Props) {
                     {item.data.categories.map((category: string, i: number) => (
                       <li key={i} className="inline-block">
                         <a
-                          href={`/categories/${slugify(category)}`}
+                          href={`/blog/categories/${slugify(category)}`}
                           className="mr-2 hover:text-primary font-medium"
                         >
                           {humanize(category)}
