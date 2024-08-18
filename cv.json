@@ -33,10 +33,15 @@
       "url": "https://camunda.com/",
       "startDate": "2023-09-15",
       "endDate": null,
-      "summary": "Develop Helm Charts to manage the Camunda 8 applications stack for our self-managed offering",
-      "highlights": ["todo"],
-      "responsibilities": ["todo"],
-      "achievements": ["todo"]
+      "summary": "Develop Helm Charts to manage the Camunda 8 applications stack for our self-managed offering and provide third level support for customers for self-managed installation",
+      "responsibilities": [
+        "Introduced multiple operators in the CI in order to make processes more efficient",
+        "Developed helm chart configurations to connect to external Elasticsearch and OpenSearch",
+        "Generated Markdown from values.yaml to save time from not doing manual processes",
+        "Pioneered the multi-region setup of Camunda self-managed deployment",
+        "Simplified running Camunda Helm Chart on OpenShift",
+        "Made multiple contributions to the official documentation"
+      ]
     },
     {
       "name": "Portworx Pure Storage",
@@ -71,6 +76,26 @@
         "Spearheaded the Agile DevOps design, development, testing, and release of 30 new microservices.",
         "Implemented various observability tools for logging, metrics and tracing to help developers debug problems that customers were facing. (Prometheus, Dynatrace, Loki, Grafana, Jaeger).",
         "Led incident response and provided hands-on troubleshooting during service interruptions."
+      ]
+    },
+    {
+      "name": "SAP Signavio Business Model Bridge",
+      "position": "Full Stack Software Engineer",
+      "location_type": "Hybrid",
+      "location": "Dublin, Ireland",
+      "url": "https://www.sap.com/",
+      "startDate": "2020-09-15",
+      "endDate": "2021-09-15",
+      "responsibilities": [
+        "Developed and maintained microservices that were deployed on SAP Kyma.",
+        "Contributed to SAP Kyma CNCF closed source repository.",
+        "Contributed to SAP Cloud Application Programming model which enabled our team to develop cloud applications in an easier manner.",
+        "Developed various Grafana views created from in-house SAP Hana Prometheus exporter.",
+        "Developed and maintained a 7 step process to onboard new contract users to theirrespective teams. This process takes 30+ minutes to execute manually. It now takes less than 5 minutes with the new automation.",
+        "Developed and maintained 100% mastery of the Software Development Life Cycle (SDLC) and deployment pipeline",
+        "Analysis of operating systems, hardware capacity, database and SAP applications to ensure optimal performance.",
+        "Performed CQC service such as Go-live analysis",
+        "Development Lead for an Internal Quiz/Survey application developed using SAP UI5."
       ]
     }
   ],
