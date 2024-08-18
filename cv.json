@@ -67,25 +67,31 @@
       "name": "certified kubernetes application developer",
       "date": "2023-05-01",
       "issuer": "Linux Academy",
-      "url": "https://www.cncf.io/training/certification/ckad/"
+      "url": "https://www.credly.com/badges/577c9626-4c0e-487c-ab0a-e58d6796eb36/linked_in_profile"
     },
     {
       "name": "Certified Kubernetes Administrator",
       "date": "2022-12-01",
       "issuer": "Linux Academy",
-      "url": "https://www.cncf.io/training/certification/cka/"
+      "url": "https://www.credly.com/badges/497f7885-f2a9-416a-9be5-941472e87533/linked_in_profile"
     },
     {
       "name": "Certified Kubernetes Security Specialist",
       "date": "2022-12-01",
       "issuer": "Linux Academy",
-      "url": "https://www.cncf.io/training/certification/cks/"
+      "url": "https://www.credly.com/badges/456daaa6-fa02-4513-93c5-1d8a5614774d/linked_in_profile"
     },
     {
       "name": "Portworx Enterprise Professional",
       "date": "2023-12-01",
       "issuer": "Pure Storage",
-      "url": "https://portworx.com/portworx-certified/"
+      "url": "https://www.credly.com/badges/6211546e-d857-4faa-9e51-003d596c7137/linked_in_profile"
+    },
+    {
+      "name": "AWS Certified Cloud Practitioner",
+      "date": "2023-12-01",
+      "issuer": "Pure Storage",
+      "url": "https://www.credly.com/badges/7cfaa509-a9cb-49d8-9551-d4563187df6d/linked_in_profile"
     }
   ],
   "skills": [
