@@ -36,8 +36,42 @@
       "summary": "Develop Helm Charts to manage the Camunda 8 applications stack for our self-managed offering",
       "highlights": ["todo"],
       "responsibilities": ["todo"],
-      "achievements": ["todo"],
-      "skills": ["Git", "Bash"]
+      "achievements": ["todo"]
+    },
+    {
+      "name": "Portworx Pure Storage",
+      "position": "Cloud Engineer",
+      "location_type": "Hybrid",
+      "location": "Dublin, Ireland",
+      "url": "https://portworx.com/",
+      "startDate": "2022-09-15",
+      "endDate": "2023-09-15",
+      "responsibilities": [
+        "Created various internal Terraform automations to enable technical support engineers to quickly replicate customer environments and replicate issues.",
+        "Solved various customer issues relating to NFS, storage, kubernetes, and cloud technologies.",
+        "Supported various customers to install and deploy Portworx on their production environment to enable them to effectively use the produce.",
+        "Held multiple workshops and knowledge transfer sessions both internally and externally related to stateful kubernetes workloads",
+        "Set up various internal labs related to Portworx Disaster Recovery cluster replication, using async and sync data replication."
+      ]
+    },
+    {
+      "name": "SAP Signavio Business Model Bridge",
+      "position": "DevOps Engineer",
+      "location_type": "Hybrid",
+      "location": "Dublin, Ireland",
+      "url": "https://www.signavio.com/",
+      "startDate": "2021-09-15",
+      "endDate": "2022-09-15",
+      "responsibilities": [
+        "Designed and implemented the entire CI/CD pipeline using Jenkins for the developers to use.",
+        "Implemented various security policies that conform to SAP standards.",
+        "Implemented various OPA policies and other tools to aid deployment which in turn saved ~40% of development time.",
+        "Onboarded and mentored other team members. Gave talks to wider SAP Signavio on our CI/CD pipeline and devops practices.",
+        "Automated the provisioning of multitenancy provider accounts in SAP BTP and deployed using containers on Kubernetes.",
+        "Spearheaded the Agile DevOps design, development, testing, and release of 30 new microservices.",
+        "Implemented various observability tools for logging, metrics and tracing to help developers debug problems that customers were facing. (Prometheus, Dynatrace, Loki, Grafana, Jaeger).",
+        "Led incident response and provided hands-on troubleshooting during service interruptions."
+      ]
     }
   ],
   "volunteer": [
