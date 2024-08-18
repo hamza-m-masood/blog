@@ -1,0 +1,45 @@
+<script>
+	// Retrieve the theme from localStorage or detect system theme
+	const theme = localStorage.getItem("theme");
+	const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+
+	// Function to apply theme classes to the button
+	function applyButtonThemeClasses(theme) {
+		const contactButton = document.getElementById("contactButton");
+
+		if (theme === "dark") {
+			contactButton.style.backgroundColor = "black";
+			contactButton.style.color = "white";
+			contactButton.style.borderColor = "orange";
+		} else {
+			contactButton.style.backgroundColor = "white";
+			contactButton.style.color = "black";
+			contactButton.style.borderColor = "orange";
+		}
+	}
+
+	// Set the initial theme
+	if (theme !== null) {
+		applyButtonThemeClasses(theme);
+	} else {
+		applyButtonThemeClasses(systemTheme);
+	}
+
+	// Listen for theme changes
+	function updateTheme(value) {
+		const theme = value === "system" ? systemTheme : value;
+		document.documentElement.classList.remove("light", "dark");
+		document.documentElement.classList.add(theme);
+		localStorage.setItem("theme", value);
+		applyButtonThemeClasses(theme);
+	}
+
+	const select = document.getElementById("themeSwitch");
+	select.addEventListener("change", (event) => {
+		updateTheme(event.target.value);
+	});
+</script>
+
+<a id="contactButton" href="https://hamza-masood.com/blog/contact/" style="display: inline-block; border: 2px solid orange; padding: 8px 16px; border-radius: 8px; text-align: center; text-decoration: none; width: auto;">
+  Contact Me
+</a>

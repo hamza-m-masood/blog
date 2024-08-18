@@ -168,12 +168,10 @@ const printInfo = [email, phone, linkedUrl].filter(Boolean).join(" • ");
 		updateTheme(select.value);
 	});
 
-	// Deshabilitar modo oscuro al imprimir
 	window.addEventListener("beforeprint", () => {
 		document.documentElement.classList.remove("dark");
 	});
 
-	// Restaurar el modo oscuro después de imprimir
 	window.addEventListener("afterprint", () => {
 		if (select.value === "dark" || (select.value === "system" && systemTheme === "dark")) {
 			document.documentElement.classList.add("dark");
