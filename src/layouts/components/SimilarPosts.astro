@@ -12,7 +12,7 @@ const { posts } = Astro.props;
       <div class={`col-12 sm:col-6 md:col-4 ${i === 2 && "hidden md:block"}`}>
         {post.data.image && (
           <a
-            href={`/${post.slug}`}
+            href={`/blog/${post.slug}`}
             class="rounded-lg block hover:text-primary overflow-hidden group"
           >
             <Image
