@@ -3,7 +3,7 @@
     "name": "Hamza Masood",
     "label": "DevOps Engineer",
     "image": "/me.jpeg",
-    "url": "https://www.hamza-masood.com",
+    "url": "https://www.hamzamasood.dev",
     "summary": "I specialize in Cloud-Native and Kubernetes. I’m also a Free/Open source enthusiast. My favorite topics are DevOps transformation, automation, data, and metrics.",
     "theme": "default",
     "location": {
@@ -402,28 +402,28 @@
         "Race Conditions, Atomicity",
         "Starvation, Livelock and many more..."
       ],
-      "url": "https://hamza-masood.com/blog/why-is-concurrency-hard/"
+      "url": "https://hamzamasood.dev/blog/why-is-concurrency-hard/"
     },
     {
       "name": "Functions in Go",
       "isActive": true,
       "description": "Sharing how functions work in Go",
       "highlights": ["Pass by value", "Pointers and more.."],
-      "url": "https://hamza-masood.com/blog/functions-in-go/"
+      "url": "https://hamzamasood.dev/blog/functions-in-go/"
     },
     {
       "name": "Docker Overview",
       "isActive": true,
       "description": "An introduction to Docker for complete beginners",
       "highlights": ["What can it do?", "How can it run?"],
-      "url": "https://hamza-masood.com/blog/docker-overview/"
+      "url": "https://hamzamasood.dev/blog/docker-overview/"
     },
     {
       "name": "File i/o in Go",
       "isActive": true,
       "description": "Understanding file handling in Go",
       "highlights": ["Printing contens of files", "Misc file commands"],
-      "url": "https://hamza-masood.com/blog/file-io-in-go/"
+      "url": "https://hamzamasood.dev/blog/file-io-in-go/"
     }
   ]
 }
