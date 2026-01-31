@@ -1,7 +1,7 @@
 ---
 title: "Part 2- The OAuth Client"
 published: 2025-07-25
-draft: true
+draft: false
 description:
   "Learning about the OAuth client from the authorization grant type"
 tags: ["OAuth"]
