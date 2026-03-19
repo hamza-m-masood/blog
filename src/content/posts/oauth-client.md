@@ -1,5 +1,5 @@
 ---
-title: "Part 2- The OAuth Client"
+title: "Part 2 - The OAuth Client"
 published: 2025-07-25
 draft: false
 description:
@@ -10,7 +10,7 @@ series: "OAuth Simplified"
 
 ## Introduction
 
-In the previous blog post, we walked through the
+In part 1 of this series, we walked through the
 [Authorization Code grant type](/posts/introduction-to-oauth#enhancing-security).
 We will continue using the example of Strava connecting to your Facebook
 account on your behalf in order to make a post.
