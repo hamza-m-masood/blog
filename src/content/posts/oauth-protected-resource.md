@@ -163,6 +163,20 @@ introspection, known as the
 
 :::
 
+## TLS Requirement
+
+In a production system, proper TLS usage is a hard-and-fast requirement.
+TLS makes sure that a middle-man can't tamper with the communication
+between two systems. TLS protects all three communication paths on OAuth:
+
+- Client → Authorization Server (where the access token is issued)
+- Client → Protected Resource (where the token is used)
+- Protected Resource → Authorization Server (the introspection call)
+
+For example, when a client communicates with the protected resource,
+without TLS, the access token lives in the HTTP header unencrypted. Anyone
+on the same network can grab the access token using a basic packet sniffer.
+
 ## The Introspection Endpoint
 
 As stated, the Authorization Server would normally accept introspection
