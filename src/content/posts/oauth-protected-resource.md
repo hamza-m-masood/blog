@@ -228,3 +228,9 @@ date -r 1783641600
 ```
 
 :::
+
+## Conclusion
+
+The job of the Protected Resource is to validate the token, enforce the
+scope and trust nothing! This ends our deep-dive into the Protected
+Resource.
