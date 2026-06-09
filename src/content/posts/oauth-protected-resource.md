@@ -12,9 +12,9 @@ series: "OAuth Simplified"
 A protected resource is the API that the OAuth client wishes to access. It
 is the API that the client is interested in accessing.
 
-In previous blogposts, we used Facebook as an example protected resource to
+In previous blog posts, we used Facebook as an example protected resource to
 walk through the authorization code grant type. We will continue to do the
-same in this blogpost as well!
+same in this blog post as well!
 
 ## Scope
 
@@ -22,14 +22,14 @@ same in this blogpost as well!
 
 How does the protected resource know to only allow the client application
 to make Facebook posts, and not any other action such as add friends or
-read private messages.
+read private messages?
 
 :::
 
 :::me
 
-This is where the concept of a Scope comes into play! Let's discuss why it
-is important to include a Scope in the Access Token when a request is
+This is where the concept of scope comes into play! Let's discuss why it
+is important to include a scope in the Access Token when a request is
 received by a protected resource.
 
 :::
@@ -46,7 +46,7 @@ When Strava accesses your Facebook account, the only action that Strava
 should be allowed to do is to make a Facebook post on your behalf. Facebook
 would parse the received Access Token and look for the scope field. Strava
 will only receive the privileges listed in the scope field. For the sake of
-our example, the Scope field would only have the "post" value, so Strava
+our example, the scope field would only have the "post" value, so Strava
 has just enough privileges to make a Facebook post on your behalf:
 
 ```yaml
@@ -61,13 +61,13 @@ we would add "personal-message" scope as well:
 scope: "post personal-message"
 ```
 
-Notice how the scopes are space separated. This makes the scopes URL
+Notice how the scopes are space-separated. This makes the scopes URL
 parameter friendly and Authorization Server agnostic.
 
 ## Scope and The Authorization Server
 
 When the client initially redirects the user to the Authorization Server,
-the client has a choice to also send a scope field with space separated
+the client has a choice to also send a scope field with space-separated
 values.
 
 :::confusedDuck
@@ -85,7 +85,7 @@ following in the Authorization Server:
 - Reject the authorization request from the client.
 - Remove certain scopes from the client and approve the authorization
   request.
-- Add on more scopes for the client and approve the authorization request.
+- Add more scopes for the client and approve the authorization request.
 
 This is why it is important for the scope to first be validated by the user
 in the Authorization Server, before the client can reach the protected
@@ -119,7 +119,7 @@ the bearer token can be passed to the protected resource in 3 different
 ways:
 
 - The HTTP Authorization header
-- Inside a form-encode POST body
+- Inside a form-encoded POST body
 - A query parameter
 
 The best method is to pass the token through the HTTP Authorization header
@@ -137,8 +137,8 @@ with other token types in the OAuth flow!
 The introspection request (defined in
 [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)) is a
 form-encoded HTTP request to the Authorization Server’s introspection
-endpoint, which allows the protected resource to ask, “Someone gave me this
-token; what is it good for?” of the Authorization Server. This means the
+endpoint, which allows the protected resource to ask the Authorization Server:
+“Someone gave me this token; what is it good for?” This means the
 protected resource doesn't have to trust the token at face value. Normally
 the protected resource would send a query to the endpoint path
 `/introspect` to check the validity of the token received by the client.
@@ -163,20 +163,6 @@ introspection, known as the
 
 :::
 
-## TLS Requirement
-
-In a production system, proper TLS usage is a hard-and-fast requirement.
-TLS makes sure that a middle-man can't tamper with the communication
-between two systems. TLS protects all three communication paths on OAuth:
-
-- Client → Authorization Server (where the access token is issued)
-- Client → Protected Resource (where the token is used)
-- Protected Resource → Authorization Server (the introspection call)
-
-For example, when a client communicates with the protected resource,
-without TLS, the access token lives in the HTTP header unencrypted. Anyone
-on the same network can grab the access token using a basic packet sniffer.
-
 ## The Introspection Endpoint
 
 As stated, the Authorization Server would normally accept introspection
@@ -189,15 +175,14 @@ receives a token from the client:
 POST /introspect HTTP/1.1
 Host: authorization-server:9001
 Accept: application/json
-Content-type: application/x-www-form-encoded
+Content-type: application/x-www-form-urlencoded
 Authorization: Basic
 cHJvdGVjdGVkLXJlc291cmNlLTE6cHJvdGVjdGVkLXJlc291cmNlLXNlY3JldC0x
 token=987tghjkiu6trfghjuytrghj
 ```
 
 The response from the Authorization Server will normally be a JSON document
-that describes the token. Which would be similar to contents of a JWT
-token.
+that describes the token, similar to the contents of a JWT.
 
 ```json
 {
@@ -215,7 +200,7 @@ token.
 
 According to our example, the scope is correct. Strava will only get
 permissions to post on behalf of the user Hamza. And from the time of
-writing this blogpost, the token is also not expired.
+writing this blog post, the token is also not expired.
 
 :::me
 
@@ -228,6 +213,20 @@ date -r 1783641600
 ```
 
 :::
+
+## TLS Requirement
+
+In a production system, proper TLS usage is a hard-and-fast requirement.
+TLS makes sure that a middle-man can't tamper with the communication
+between two systems. TLS protects all three communication paths on OAuth:
+
+- Client → Authorization Server (where the Access Token is issued)
+- Client → Protected Resource (where the token is used)
+- Protected Resource → Authorization Server (the introspection call)
+
+For example, when a client communicates with the protected resource,
+without TLS, the Access Token lives in the HTTP header unencrypted. Anyone
+on the same network can grab the Access Token using a basic packet sniffer.
 
 ## Conclusion
 
