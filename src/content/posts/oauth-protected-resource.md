@@ -10,17 +10,18 @@ series: "OAuth Simplified"
 ## What is a Protected Resource
 
 A protected resource is the API that the OAuth client wishes to access. It
-is the API that the client is interested in accessing. In previous
-blogposts, we used Facebook as an example protected resource to walk
-through the authorization code grant type. We will continue to do the same
-in this blogpost as well!
+is the API that the client is interested in accessing.
+
+In previous blogposts, we used Facebook as an example protected resource to
+walk through the authorization code grant type. We will continue to do the
+same in this blogpost as well!
 
 ## Scope
 
 :::confusedDuck
 
 How does the protected resource know to only allow the client application
-to make facebook posts, and not any other action such as add friends or
+to make Facebook posts, and not any other action such as add friends or
 read private messages.
 
 :::
@@ -77,9 +78,9 @@ Resource?
 
 :::
 
-When the user is redirected to the authorization server, the user can
-see what scopes the client is requesting. The user then has a choice to do
-the following in the Authorization Server:
+When the user is redirected to the Authorization Server, the user can see
+what scopes the client is requesting. The user then has a choice to do the
+following in the Authorization Server:
 
 - Reject the authorization request from the client.
 - Remove certain scopes from the client and approve the authorization
@@ -92,7 +93,7 @@ resource.
 
 :::attackerDuck
 
-What if the client modifies the access token and adds extra scopes before
+What if the client modifies the Access Token and adds extra scopes before
 it is received by the protected resource? Wouldn't that lead to the client
 gaining elevated permissions?
 
@@ -111,7 +112,7 @@ token can be parsed by the protected resource.
 ## Parsing The Token
 
 The first step is for the protected resource to parse the Access Token. The
-Access Token can be sent to the protected resource as a Bearer token.
+Access Token can be sent to the protected resource as a bearer token.
 According to the
 [OAuth bearer token usage specification](https://tools.ietf.org/html/rfc6750),
 the bearer token can be passed to the protected resource in 3 different
@@ -135,24 +136,24 @@ with other token types in the OAuth flow!
 
 The introspection request (defined in
 [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)) is a
-form-encoded HTTP request to the authorization server’s introspection
+form-encoded HTTP request to the Authorization Server’s introspection
 endpoint, which allows the protected resource to ask, “Someone gave me this
-token; what is it good for?” of the authorization server. This means the
+token; what is it good for?” of the Authorization Server. This means the
 protected resource doesn't have to trust the token at face value. Normally
-the protected resource would send a query to the endpoint path `/introspect`
-to check the validity of the token received by the client.
+the protected resource would send a query to the endpoint path
+`/introspect` to check the validity of the token received by the client.
 
 This solves our problem of the client artificially elevating its
-permissions by manually editing the scope field. The protected resource would
-check on each request whether the token is valid.
+permissions by manually editing the scope field. The protected resource
+would check on each request whether the token is valid.
 
 ### Token Expiration/Revocation
 
-Since the protected resource now validates the token on each request, it can
-also check if a token has been rejected by the Authorization Server or the
-TTL (time to live) of the token has been reached and is now expired. If the
-protected resource finds out from the Authorization Server that the token
-is either rejected or expired, then it will not accept that token.
+Since the protected resource now validates the token on each request, it
+can also check if a token has been rejected by the Authorization Server or
+the TTL (time to live) of the token has been reached and is now expired. If
+the protected resource finds out from the Authorization Server that the
+token is either rejected or expired, then it will not accept that token.
 
 :::me
 
