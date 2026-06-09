@@ -10,7 +10,7 @@ series: "OAuth Simplified"
 ## What is a Protected Resource
 
 A protected resource is the API that the OAuth client wishes to access. It
-is API which owns that the client is interested to access. In previous
+is the API that the client is interested in accessing. In previous
 blogposts, we used Facebook as an example protected resource to walk
 through the authorization code grant type. We will continue to do the same
 in this blogpost as well!
@@ -41,7 +41,7 @@ of our series:
 - Client: Strava
 - Protected Resource: Facebook
 
-When Strava access your Facebook account, the only action that Strava
+When Strava accesses your Facebook account, the only action that Strava
 should be allowed to do is to make a Facebook post on your behalf. Facebook
 would parse the received Access Token and look for the scope field. Strava
 will only receive the privileges listed in the scope field. For the sake of
@@ -57,7 +57,7 @@ to give Strava the permission to send a personal message on your behalf. So
 we would add "personal-message" scope as well:
 
 ```yaml
-scope: "post person-message"
+scope: "post personal-message"
 ```
 
 Notice how the scopes are space separated. This makes the scopes URL
@@ -65,7 +65,7 @@ parameter friendly and Authorization Server agnostic.
 
 ## Scope and The Authorization Server
 
-When the client intially redirects the user to the Authorization Server,
+When the client initially redirects the user to the Authorization Server,
 the client has a choice to also send a scope field with space separated
 values.
 
@@ -77,7 +77,7 @@ Resource?
 
 :::
 
-When the user is redirected back to the authorization server, the user can
+When the user is redirected to the authorization server, the user can
 see what scopes the client is requesting. The user then has a choice to do
 the following in the Authorization Server:
 
@@ -100,11 +100,11 @@ gaining elevated permissions?
 
 :::strongme
 
-Not so fast! OAuth 2.0 has an aswer for these kind of attacks. It's
+Not so fast! OAuth 2.0 has an answer for these kinds of attacks. It's
 possible for the protected resource to validate the Access Token before it
 is used. In OAuth terms, it's known as Token Introspection. Before we dive
 into the inner workings of Token Introspection, we must first learn how a
-token can be parse by the protected resource.
+token can be parsed by the protected resource.
 
 :::
 
@@ -113,8 +113,8 @@ token can be parse by the protected resource.
 The first step is for the protected resource to parse the Access Token. The
 Access Token can be sent to the protected resource as a Bearer token.
 According to the
-[OAuth bearer token usage specification](https://tools.ietf.org/html/rfc6750).
-The bearer token can be passed to the protected resource in 3 different
+[OAuth bearer token usage specification](https://tools.ietf.org/html/rfc6750),
+the bearer token can be passed to the protected resource in 3 different
 ways:
 
 - The HTTP Authorization header
@@ -139,16 +139,16 @@ form-encoded HTTP request to the authorization server’s introspection
 endpoint, which allows the protected resource to ask, “Someone gave me this
 token; what is it good for?” of the authorization server. This means the
 protected resource doesn't have to trust the token at face value. Normally
-the prviate resource would send a query to the endpoint path `/introspect`
+the protected resource would send a query to the endpoint path `/introspect`
 to check the validity of the token received by the client.
 
-This solves our problem of the client artifically elevating it's
-permissions by manually editing the scope field. The private resource would
-check the token on each request if the token is valid.
+This solves our problem of the client artificially elevating its
+permissions by manually editing the scope field. The protected resource would
+check on each request whether the token is valid.
 
 ### Token Expiration/Revocation
 
-Since the private resource now validates the token on each request, it can
+Since the protected resource now validates the token on each request, it can
 also check if a token has been rejected by the Authorization Server or the
 TTL (time to live) of the token has been reached and is now expired. If the
 protected resource finds out from the Authorization Server that the token
@@ -164,7 +164,7 @@ introspection, known as the
 
 ## The Introspection Endpoint
 
-As stated, the Authroization Server would normally accept introspection
+As stated, the Authorization Server would normally accept introspection
 requests on the path `/introspect`.
 
 Here is what a query from the protected resource would look like once it
