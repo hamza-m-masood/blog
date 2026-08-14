@@ -9,18 +9,20 @@ series: "OAuth Simplified"
 
 ## What is a Protected Resource
 
-A protected resource is the API that the OAuth client wishes to access. It
-is the API that the client is interested in accessing.
+A protected resource is the API that the OAuth client wishes to access. The
+protected resource does not need to have a UI since it will never interact
+with the user directly. Only the client will send API requests to the
+protected resource.
 
-In previous blog posts, we used Facebook as an example protected resource to
-walk through the authorization code grant type. We will continue to do the
-same in this blog post as well!
+In previous blog posts, we used Facebook as an example protected resource
+to walk through the authorization code grant type. We will continue to do
+the same in this blog post as well!
 
 ## Scope
 
 :::confusedDuck
 
-How does the protected resource know to only allow the client application
+How does the protected resource know the client application is only allowed
 to make Facebook posts, and not any other action such as add friends or
 read private messages?
 
@@ -28,9 +30,9 @@ read private messages?
 
 :::me
 
-This is where the concept of scope comes into play! Let's discuss why it
-is important to include a scope in the Access Token when a request is
-received by a protected resource.
+This is where the concept of scope comes into play! Let's discuss why it is
+important to include a scope in the Access Token when a request is received
+by a protected resource.
 
 :::
 
@@ -39,19 +41,31 @@ resource. Let's recap the example that we have been using since the start
 of our series:
 
 - User: you 🫵
-- Client: Strava
+- Client: Strava (your running app that wants access to your Facebook
+  account.)
 - Protected Resource: Facebook
 
 When Strava accesses your Facebook account, the only action that Strava
-should be allowed to do is to make a Facebook post on your behalf. Facebook
-would parse the received Access Token and look for the scope field. Strava
-will only receive the privileges listed in the scope field. For the sake of
-our example, the scope field would only have the "post" value, so Strava
-has just enough privileges to make a Facebook post on your behalf:
+should be allowed to do is to make a Facebook post on your behalf. As
+discussed in previous blog posts, Facebook would receive an Access Token
+from Strava.
+
+Facebook would parse the received Access Token and look for the `scope`
+field. Strava will only receive the privileges listed in the `scope` field.
+Think of it as a whitelist of allowed actions a client can take on a
+protected resource.
+
+For the sake of our example, the `scope` field would only have the "post"
+value, so Strava has just enough privileges to make a Facebook post on your
+behalf:
 
 ```yaml
 scope: "post"
 ```
+
+The `scope` field in the parsed Access Token can have pretty much any
+string value. We need to make sure that our protected resource (Facebook)
+recognizes this value and knows what to do with it.
 
 A client can have one or more scopes assigned to it. Let's say we also want
 to give Strava the permission to send a personal message on your behalf. So
@@ -61,8 +75,18 @@ we would add "personal-message" scope as well:
 scope: "post personal-message"
 ```
 
-Notice how the scopes are space-separated. This makes the scopes URL
-parameter friendly and Authorization Server agnostic.
+Now Strava has access to send a post on your feed, and also send a
+private-message to one of your friends.
+
+:::sweatingDuck
+
+Don't blame the client if your ex-wife gets Strava running updates. You
+already gave the permissions!
+
+:::
+
+Notice how the scope values are space-separated. This makes the scope
+values URL parameter friendly and Authorization Server agnostic.
 
 ## Scope and The Authorization Server
 
@@ -137,8 +161,8 @@ with other token types in the OAuth flow!
 The introspection request (defined in
 [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)) is a
 form-encoded HTTP request to the Authorization Server’s introspection
-endpoint, which allows the protected resource to ask the Authorization Server:
-“Someone gave me this token; what is it good for?” This means the
+endpoint, which allows the protected resource to ask the Authorization
+Server: “Someone gave me this token; what is it good for?” This means the
 protected resource doesn't have to trust the token at face value. Normally
 the protected resource would send a query to the endpoint path
 `/introspect` to check the validity of the token received by the client.
