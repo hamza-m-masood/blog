@@ -90,17 +90,34 @@ values URL parameter friendly and Authorization Server agnostic.
 
 ## Scope and The Authorization Server
 
+Now that we know what the `scope` parameter is in an OAuth context, let's
+see how it fits in the overall OAuth flow.
+
 When the client initially redirects the user to the Authorization Server,
 the client has a choice to also send a scope field with space-separated
-values.
+values. This will inform you (the user), if you would like to delegate the
+scope of authorizations that the client is requesting. In this case, the
+client will only request to send a Facebook post on your behalf according
+to it's scope.
 
-:::confusedDuck
+Here is a list of parameters that can by added to the redirect URL from the
+client to the Authorization Server, which includes the scope:
 
-What is the point of the client sending the list of scopes to the
-Authorization Server when the scopes only matter for the Protected
-Resource?
+```bash
+response_type: code
+client_id: strava
+redirect_uri: https://strava.com/callback
+scope: post
+```
 
-:::
+Here is what these parameters would look like in an HTTP redirect request
+to the Authorization Server:
+
+```bash
+HTTP/1.1 302 Found
+Location: https://auth-server/authorize?response_type=code&scope=post&client_id=strava&redirect_uri=https%3A%2F%2Fstrava.com%2Fcallback
+Content-Type: text/html
+```
 
 When the user is redirected to the Authorization Server, the user can see
 what scopes the client is requesting. The user then has a choice to do the
@@ -125,38 +142,40 @@ gaining elevated permissions?
 
 :::strongme
 
-Not so fast! OAuth 2.0 has an answer for these kinds of attacks. It's
-possible for the protected resource to validate the Access Token before it
-is used. In OAuth terms, it's known as Token Introspection. Before we dive
-into the inner workings of Token Introspection, we must first learn how a
-token can be parsed by the protected resource.
+Not so fast! OAuth 2.0 has an answer for these kinds of attacks.
 
 :::
 
+It's possible for the protected resource to validate the Access Token
+before it is used. In OAuth terms, it's known as
+[Token Introspection](https://datatracker.ietf.org/doc/html/rfc7662).
+Before we dive into the inner workings of Token Introspection, we must
+first learn how a token can be parsed by the protected resource.
+
 ## Parsing The Token
 
-The first step is for the protected resource to parse the Access Token. The
-Access Token can be sent to the protected resource as a bearer token.
-According to the
-[OAuth bearer token usage specification](https://tools.ietf.org/html/rfc6750),
-the bearer token can be passed to the protected resource in 3 different
+When an Access Token arrives to the protected resource from the client,
+then the first step is to parse the Access Token.
+
+The Access Token can be passed to the protected resource in 3 different
 ways:
 
 - The HTTP Authorization header
 - Inside a form-encoded POST body
 - A query parameter
 
-The best method is to pass the token through the HTTP Authorization header
-because it has the least chance of being logged or leaked.
+The best method is to pass the Access Token through the HTTP Authorization
+header because it has the least chance of being logged or leaked.
 
 :::me
 
-In a future blog post we will discuss what exactly a bearer token is along
-with other token types in the OAuth flow!
+In a future blog post we will discuss different types of Access Tokens that
+can be sent to a private resource such as a
+[bearer token](https://tools.ietf.org/html/rfc6750). Stay tuned!
 
 :::
 
-## Validating The Access Token - Token Introspection
+## Token Introspection
 
 The introspection request (defined in
 [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)) is a
@@ -187,7 +206,7 @@ introspection, known as the
 
 :::
 
-## The Introspection Endpoint
+### The Introspection Endpoint
 
 As stated, the Authorization Server would normally accept introspection
 requests on the path `/introspect`.
