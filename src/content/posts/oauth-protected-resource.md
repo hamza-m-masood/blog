@@ -76,12 +76,12 @@ scope: "post personal-message"
 ```
 
 Now Strava has access to send a post on your feed, and also send a
-private-message to one of your friends.
+private-message to one of your Facebook friends.
 
 :::sweatingDuck
 
-Don't blame the client if your ex-wife gets Strava running updates. You
-already gave the permissions!
+Don't blame the OAuth client if your ex-wife gets Strava running updates.
+You already delegated the authorizations!
 
 :::
 
@@ -150,28 +150,80 @@ It's possible for the protected resource to validate the Access Token
 before it is used. In OAuth terms, it's known as
 [Token Introspection](https://datatracker.ietf.org/doc/html/rfc7662).
 Before we dive into the inner workings of Token Introspection, we must
-first learn how a token can be parsed by the protected resource.
+first learn how a token is sent to the protected resource.
 
-## Parsing The Token
+## Sending The Token
 
-When an Access Token arrives to the protected resource from the client,
-then the first step is to parse the Access Token.
+Once Strava has an Access Token, it needs to attach it to every request it
+makes to Facebook. According to the
+[OAuth bearer token usage specification](https://tools.ietf.org/html/rfc6750),
+there are 3 ways to do this. Let's say Strava received the Access Token
+`987tghjkiu6trfghjuytrghj` and now wants to create a post on your feed via
+`POST /me/feed`.
 
-The Access Token can be passed to the protected resource in 3 different
-ways:
+### A Form-Encoded POST Body
 
-- The HTTP Authorization header
-- Inside a form-encoded POST body
-- A query parameter
+```bash
+POST /me/feed
+Host: facebook.com
+Content-Type: application/x-www-form-urlencoded
 
-The best method is to pass the Access Token through the HTTP Authorization
-header because it has the least chance of being logged or leaked.
+access_token=987tghjkiu6trfghjuytrghj
+```
+
+### A Query Parameter
+
+```bash
+POST /me/feed?access_token=987tghjkiu6trfghjuytrghj
+Host: facebook.com
+```
+
+### The HTTP Authorization Header
+
+```bash
+POST /me/feed
+Host: facebook.com
+Authorization: Bearer 987tghjkiu6trfghjuytrghj
+```
+
+Notice the `Bearer` keyword in front of the token. This tells Facebook what
+_type_ of token it's receiving. A bearer token means whoever holds (bears)
+this string is authorized to use it, no additional proof is required.
+
+:::magnifyingglassme
+
+We'll dive deeper into bearer tokens and other token types in a future blog
+post.
+
+:::
+
+The Authorization header is the best method to pass the Access Token
+because it has the least chance of being logged or leaked:
+
+- A query parameter gets written to Facebook's server access logs, shows up
+  in your browser history, and can leak to third parties through the
+  `Referer` header if Facebook's response ever links out somewhere.
+- A form-encoded body only exists on requests that already have a body.
+  It's useless for a `GET` request, so it can't be relied on universally.
+
+The Authorization header avoids all of these problems, which is why it's
+the recommended method.
+
+:::confusedDuck
+
+What happens if Strava forgets to send the token, or sends a garbage value?
+
+:::
 
 :::me
 
-In a future blog post we will discuss different types of Access Tokens that
-can be sent to a private resource such as a
-[bearer token](https://tools.ietf.org/html/rfc6750). Stay tuned!
+Facebook would reject the request with a `401 Unauthorized`, along with a
+`WWW-Authenticate` header describing what went wrong:
+
+```bash
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer realm="facebook", error="invalid_token"
+```
 
 :::
 
