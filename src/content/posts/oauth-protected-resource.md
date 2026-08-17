@@ -161,7 +161,7 @@ there are 3 ways to do this. Let's say Strava received the Access Token
 `987tghjkiu6trfghjuytrghj` and now wants to create a post on your feed via
 `POST /me/feed`.
 
-### A Form-Encoded POST Body
+A Form-Encoded POST Body:
 
 ```bash
 POST /me/feed
@@ -171,14 +171,14 @@ Content-Type: application/x-www-form-urlencoded
 access_token=987tghjkiu6trfghjuytrghj
 ```
 
-### A Query Parameter
+A Query Parameter:
 
 ```bash
 POST /me/feed?access_token=987tghjkiu6trfghjuytrghj
 Host: facebook.com
 ```
 
-### The HTTP Authorization Header
+The HTTP Authorization Header:
 
 ```bash
 POST /me/feed
@@ -215,8 +215,6 @@ What happens if Strava forgets to send the token, or sends a garbage value?
 
 :::
 
-:::me
-
 Facebook would reject the request with a `401 Unauthorized`, along with a
 `WWW-Authenticate` header describing what went wrong:
 
@@ -224,8 +222,6 @@ Facebook would reject the request with a `401 Unauthorized`, along with a
 HTTP/1.1 401 Unauthorized
 WWW-Authenticate: Bearer realm="facebook", error="invalid_token"
 ```
-
-:::
 
 ## Token Introspection
 
