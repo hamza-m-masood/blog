@@ -229,14 +229,16 @@ The introspection request (defined in
 [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)) is a
 form-encoded HTTP request to the Authorization Server’s introspection
 endpoint, which allows the protected resource to ask the Authorization
-Server: “Someone gave me this token; what is it good for?” This means the
-protected resource doesn't have to trust the token at face value. Normally
-the protected resource would send a query to the endpoint path
-`/introspect` to check the validity of the token received by the client.
+Server: “An OAuth client gave me this Access Token, what is it good for?”
+This means the protected resource doesn't have to trust the token at face
+value. Normally the protected resource would send a query to the endpoint
+path `/introspect` to check the validity of the token received by the
+client.
 
 This solves our problem of the client artificially elevating its
 permissions by manually editing the scope field. The protected resource
-would check on each request whether the token is valid.
+would check on each request (by querying the Authorization Server) whether
+the token is valid.
 
 ### Token Expiration/Revocation
 
@@ -244,7 +246,8 @@ Since the protected resource now validates the token on each request, it
 can also check if a token has been rejected by the Authorization Server or
 the TTL (time to live) of the token has been reached and is now expired. If
 the protected resource finds out from the Authorization Server that the
-token is either rejected or expired, then it will not accept that token.
+token is either rejected or expired, then protected resource will not
+accept that token.
 
 :::me
 
@@ -259,8 +262,8 @@ introspection, known as the
 As stated, the Authorization Server would normally accept introspection
 requests on the path `/introspect`.
 
-Here is what a query from the protected resource would look like once it
-receives a token from the client:
+Here is what a query from the protected resource to the Authorization
+Server would look like once it receives a token from the client:
 
 ```bash
 POST /introspect HTTP/1.1
@@ -273,7 +276,7 @@ token=987tghjkiu6trfghjuytrghj
 ```
 
 The response from the Authorization Server will normally be a JSON document
-that describes the token, similar to the contents of a JWT.
+that describes the token:
 
 ```json
 {
@@ -293,7 +296,7 @@ According to our example, the scope is correct. Strava will only get
 permissions to post on behalf of the user Hamza. And from the time of
 writing this blog post, the token is also not expired.
 
-:::me
+:::tip
 
 Quick tip! If you want to parse the timestamps listed above, then you can
 do so on a bash commandline as follows:
@@ -307,20 +310,24 @@ date -r 1783641600
 
 ## TLS Requirement
 
-In a production system, proper TLS usage is a hard-and-fast requirement.
-TLS makes sure that a middle-man can't tamper with the communication
-between two systems. TLS protects all three communication paths on OAuth:
+In a production OAuth system, proper TLS usage is a hard-and-fast
+requirement. TLS makes sure that a middle-man can't tamper with the
+communication between two systems. TLS protects all three communication
+paths on OAuth:
 
 - Client → Authorization Server (where the Access Token is issued)
 - Client → Protected Resource (where the token is used)
 - Protected Resource → Authorization Server (the introspection call)
 
-For example, when a client communicates with the protected resource,
-without TLS, the Access Token lives in the HTTP header unencrypted. Anyone
-on the same network can grab the Access Token using a basic packet sniffer.
+TLS is particularly important when a client communicates with the protected
+resource. Without TLS, the Access Token lives in the HTTP header
+unencrypted. Anyone on the same network can grab the Access Token using a
+basic packet sniffer.
 
 ## Conclusion
 
-The job of the Protected Resource is to validate the token, enforce the
-scope and trust nothing! This ends our deep-dive into the Protected
-Resource.
+At this point you should have a solid foundation of what a protected
+resource is and it's role in the OAuth flow. The job of the Protected
+Resource is to validate the token, enforce the scope and trust nothing!
+
+This ends our deep-dive into the Protected Resource.
