@@ -50,22 +50,30 @@ should be allowed to do is to make a Facebook post on your behalf. As
 discussed in previous blog posts, Facebook would receive an Access Token
 from Strava.
 
-Facebook would parse the received Access Token and look for the `scope`
-field. Strava will only receive the privileges listed in the `scope` field.
-Think of it as a whitelist of allowed actions a client can take on a
-protected resource.
+The Access Token is usually an opaque string. It is a random handle with
+nothing inside it for Facebook to read. The `scope` belonging to that
+Access Token is held by the Authorization Server, which records it the
+moment you approve the request from Strava. Facebook does not read the
+scope out of the token. It looks the token up on the Authorization Server
+and gets the scope back.
 
-For the sake of our example, the `scope` field would only have the "post"
-value, so Strava has just enough privileges to make a Facebook post on your
-behalf:
+Whatever comes back to the protected resource from the Authorization Server
+is a whitelist of allowed actions a client can take on a protected
+resource. Strava will only receive the privileges listed in the `scope`
+field. We will discuss more on how the protected resource can validate the
+Access Token further down in this blog.
+
+For the sake of our example, the `scope` that the Authorization Server has
+on record for this token would only have the "post" value, so Strava has
+just enough privileges to make a Facebook post on your behalf:
 
 ```yaml
 scope: "post"
 ```
 
-The `scope` field in the parsed Access Token can have pretty much any
-string value. We need to make sure that our protected resource (Facebook)
-recognizes this value and knows what to do with it.
+The `scope` field can have pretty much any string value. We need to make
+sure that our protected resource (Facebook) recognizes this value and knows
+what to do with it.
 
 A client can have one or more scopes assigned to it. Let's say we also want
 to give Strava the permission to send a personal message on your behalf. So
@@ -142,12 +150,19 @@ gaining elevated permissions?
 
 :::strongme
 
-Not so fast! OAuth 2.0 has an answer for these kinds of attacks.
+Not so fast! Remember that the token is an opaque string. There is no scope
+field inside it to edit.
 
 :::
 
-It's possible for the protected resource to validate the Access Token
-before it is used. In OAuth terms, it's known as
+It's not possible for the client to edit the token. It would be useless.
+Even if a single character is changed in the Access Token, the
+Authorization server would recognize it. The lookup would fail and Facebook
+would reject the request from the client. The scope you approved never
+traveled inside the token. It stayed with the Authorization Server the
+whole time.
+
+That lookup is what OAuth calls
 [Token Introspection](https://datatracker.ietf.org/doc/html/rfc7662).
 Before we dive into the inner workings of Token Introspection, we must
 first learn how a token is sent to the protected resource.
@@ -228,17 +243,17 @@ WWW-Authenticate: Bearer realm="facebook", error="invalid_token"
 The introspection request (defined in
 [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)) is a
 form-encoded HTTP request to the Authorization Server’s introspection
-endpoint, which allows the protected resource to ask the Authorization
+endpoint. This allows the protected resource to ask the Authorization
 Server: “An OAuth client gave me this Access Token, what is it good for?”
 This means the protected resource doesn't have to trust the token at face
 value. Normally the protected resource would send a query to the endpoint
 path `/introspect` to check the validity of the token received by the
 client.
 
-This solves our problem of the client artificially elevating its
-permissions by manually editing the scope field. The protected resource
-would check on each request (by querying the Authorization Server) whether
-the token is valid.
+This is why the client cannot inflate its own permissions. The scope that
+comes back belongs to the Authorization Server, not to anything the client
+sent along. The protected resource checks on each request whether the token
+is still valid and what it is actually allowed to do.
 
 ### Token Expiration/Revocation
 
@@ -269,11 +284,16 @@ Server would look like once it receives a token from the client:
 POST /introspect HTTP/1.1
 Host: authorization-server:9001
 Accept: application/json
-Content-type: application/x-www-form-urlencoded
-Authorization: Basic
-cHJvdGVjdGVkLXJlc291cmNlLTE6cHJvdGVjdGVkLXJlc291cmNlLXNlY3JldC0x
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic cHJvdGVjdGVkLXJlc291cmNlLTE6cHJvdGVjdGVkLXJlc291cmNlLXNlY3JldC0x
+
 token=987tghjkiu6trfghjuytrghj
 ```
+
+Notice the `Authorization: Basic` header. The introspection endpoint is not
+open to the world, so the protected resource has to authenticate itself the
+same way a client does. Without this authentication step, anyone could
+throw stolen tokens at `/introspect` and learn which ones are still live.
 
 The response from the Authorization Server will normally be a JSON document
 that describes the token:
@@ -292,9 +312,15 @@ that describes the token:
 }
 ```
 
-According to our example, the scope is correct. Strava will only get
-permissions to post on behalf of the user Hamza. And from the time of
-writing this blog post, the token is also not expired.
+The first field to check is `active`. If it comes back `false`, then
+nothing else in the response matters and Facebook rejects the request. A
+token can be inactive for many reasons. For example, it expired, or it was
+revoked, or because it was never issued by this Authorization Server in the
+first place.
+
+According to our example, `active` is true and the scope is correct. Strava
+will only get permissions to post on behalf of the user Hamza. And from the
+time of writing this blog post, the token is also not expired.
 
 :::tip
 
@@ -302,8 +328,13 @@ Quick tip! If you want to parse the timestamps listed above, then you can
 do so on a bash commandline as follows:
 
 ```bash
+# macOS and BSD
 date -r 1783641600
 # Fri 10 Jul 2026 01:00:00 IST
+
+# GNU coreutils, so most Linux distributions
+date -d @1783641600
+# Fri Jul 10 01:00:00 IST 2026
 ```
 
 :::
