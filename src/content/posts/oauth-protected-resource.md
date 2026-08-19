@@ -30,9 +30,9 @@ read private messages?
 
 :::me
 
-This is where the concept of scope comes into play! Let's discuss why it is
-important to include a scope in the Access Token when a request is received
-by a protected resource.
+This is where the concept of scope comes into play! Let's discuss how a
+scope gets attached to an Access Token, and how the protected resource
+finds out what that scope is.
 
 :::
 
@@ -167,10 +167,10 @@ field inside it to edit.
 
 It's not possible for the client to edit the token. It would be useless.
 Even if a single character is changed in the Access Token, the
-Authorization server would recognize it. The lookup would fail and Facebook
-would reject the request from the client. The scope you approved never
-traveled inside the token. It stayed with the Authorization Server the
-whole time.
+Authorization Server would no longer recognize it. The lookup would fail
+and Facebook would reject the request from the client. The scope you
+approved never traveled inside the token. It stayed with the Authorization
+Server the whole time.
 
 That lookup is what OAuth calls
 [Token Introspection](https://datatracker.ietf.org/doc/html/rfc7662).
