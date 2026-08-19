@@ -23,8 +23,8 @@ the same in this blog post as well!
 :::confusedDuck
 
 How does the protected resource know the client application is only allowed
-to make Facebook posts, and not any other action such as add friends or
-read private messages?
+to make Facebook posts, and not any other action such as adding friends or
+reading private messages?
 
 :::
 
@@ -110,9 +110,9 @@ the client has a choice to also send a scope field with space-separated
 values. This will inform you (the user), if you would like to delegate the
 scope of authorizations that the client is requesting. In this case, the
 client will only request to send a Facebook post on your behalf according
-to it's scope.
+to its scope.
 
-Here is a list of parameters that can by added to the redirect URL from the
+Here is a list of parameters that can be added to the redirect URL from the
 client to the Authorization Server, which includes the scope:
 
 ```bash
@@ -127,7 +127,7 @@ to the Authorization Server:
 
 ```bash
 HTTP/1.1 302 Found
-Location: https://auth-server/authorize?response_type=code&scope=post&client_id=strava&redirect_uri=https%3A%2F%2Fstrava.com%2Fcallback
+Location: https://authorization-server/authorize?response_type=code&scope=post&client_id=strava&redirect_uri=https%3A%2F%2Fstrava.com%2Fcallback
 Content-Type: text/html
 ```
 
@@ -165,12 +165,12 @@ field inside it to edit.
 
 :::
 
-It's not possible for the client to edit the token. It would be useless.
-Even if a single character is changed in the Access Token, the
-Authorization Server would no longer recognize it. The lookup would fail
-and Facebook would reject the request from the client. The scope you
-approved never traveled inside the token. It stayed with the Authorization
-Server the whole time.
+The client can edit the token all it likes, but it would be useless. Even
+if a single character is changed in the Access Token, the Authorization
+Server would no longer recognize it. The lookup would fail and Facebook
+would reject the request from the client. The scope you approved never
+traveled inside the token. It stayed with the Authorization Server the
+whole time.
 
 That lookup is what OAuth calls
 [Token Introspection](https://datatracker.ietf.org/doc/html/rfc7662).
@@ -213,7 +213,7 @@ Authorization: Bearer 987tghjkiu6trfghjuytrghj
 
 Notice the `Bearer` keyword in front of the token. This tells Facebook what
 _type_ of token it's receiving. A bearer token means whoever holds (bears)
-this string is authorized to use it, no additional proof is required.
+this string is authorized to use it, and no additional proof is required.
 
 :::magnifyingglassme
 
@@ -223,7 +223,7 @@ post.
 :::
 
 Of those three, only the HTTP Authorization header should be reached for.
-It is the one the OAuth 2.0 specification tells you to use:
+The other two both come with a catch:
 
 - A query parameter gets written to Facebook's server access logs, shows up
   in your browser history, and can leak to third parties through the
@@ -234,8 +234,9 @@ It is the one the OAuth 2.0 specification tells you to use:
   It's useless for a `GET` request, so it can't be relied on universally.
 
 The Authorization header avoids all of these problems, which is why it's
-the recommended method. OAuth 2.1 goes further and drops the other two
-entirely, so treat the header as the only way to send a token.
+the recommended method. OAuth 2.1 goes further and drops the query
+parameter method entirely. It only keeps the Authorization header and the
+form-encoded body.
 
 :::confusedDuck
 
@@ -267,7 +268,7 @@ private messages:
 
 ```bash
 HTTP/1.1 403 Forbidden
-WWW-Authenticate: Bearer realm="facebook", error="insufficient_scope", scope="read-messages"
+WWW-Authenticate: Bearer realm="facebook", error="insufficient_scope", scope="read-personal-message"
 ```
 
 Strava would get an `insufficient_scope` error. Notice that Facebook also
@@ -280,9 +281,9 @@ retrying the same request.
 
 The introspection request (defined in
 [RFC 7662](https://datatracker.ietf.org/doc/html/rfc7662)) is a
-form-encoded HTTP request to the Authorization Server’s introspection
+form-encoded HTTP request to the Authorization Server's introspection
 endpoint. This allows the protected resource to ask the Authorization
-Server: “An OAuth client gave me this Access Token, what is it good for?”
+Server: "An OAuth client gave me this Access Token, what is it good for?"
 This means the protected resource doesn't have to trust the token at face
 value. The protected resource sends a query to that endpoint to check the
 validity of the token received by the client.
@@ -298,7 +299,7 @@ Since the protected resource now validates the token on each request, it
 can also check if a token has been rejected by the Authorization Server or
 the TTL (time to live) of the token has been reached and is now expired. If
 the protected resource finds out from the Authorization Server that the
-token is either rejected or expired, then protected resource will not
+token is either rejected or expired, then the protected resource will not
 accept that token.
 
 :::me
@@ -311,12 +312,12 @@ introspection, known as the
 
 ### The Introspection Endpoint
 
-The protected resource can query `/introspect` from the Authorization
-Server, which is a common choice and the one we will use, but every
-Authorization Server picks its own. The OAuth 2.0 spec does not define a
-clear name for the introspection endpoint. A protected resource should read
-the `introspection_endpoint` value out of the Authorization Server's
-metadata document, described in
+The protected resource queries the introspection endpoint on the
+Authorization Server. The OAuth 2.0 spec does not define a name for that
+endpoint. `/introspect` is a common choice and the one we will use, but
+every Authorization Server picks its own path. Rather than hard-coding it,
+a protected resource should read the `introspection_endpoint` value out of
+the Authorization Server's metadata document, described in
 [RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414).
 
 Here is what a query from the protected resource to the Authorization
@@ -356,16 +357,16 @@ that describes the token:
 
 The first field to check is `active`. If it comes back `false`, then
 nothing else in the response matters and Facebook rejects the request. A
-token can be inactive for many reasons. For example, it expired, or it was
-revoked, or because it was never issued by this Authorization Server in the
-first place.
+token can be inactive for many reasons. For example, it expired, it was
+revoked, or it was never issued by this Authorization Server in the first
+place.
 
 According to our example, `active` is true and the scope is correct. Strava
 will only get permissions to post on behalf of the user Hamza.
 
 Look at the two timestamps. The `exp` sits one hour after the `iat`, so
 this Access Token is only good for an hour from the moment it was issued.
-Access Tokens normally should be short lifespans.
+Access Tokens normally should have short lifespans.
 
 :::tip
 
@@ -403,7 +404,7 @@ basic packet sniffer.
 ## Conclusion
 
 At this point you should have a solid foundation of what a protected
-resource is and it's role in the OAuth flow. The job of the Protected
+resource is and its role in the OAuth flow. The job of the Protected
 Resource is to validate the token, enforce the scope and trust nothing!
 
 This ends our deep-dive into the Protected Resource.
