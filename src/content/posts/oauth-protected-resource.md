@@ -374,12 +374,12 @@ do so on a bash commandline as follows:
 
 ```bash
 # macOS and BSD
-date -r 1774875600
-# Mon 30 Mar 2026 14:00:00 IST
+TZ=GMT date -r 1774875600
+# Mon 30 Mar 2026 13:00:00 GMT
 
 # GNU coreutils, so most Linux distributions
-date -d @1774875600
-# Mon Mar 30 14:00:00 IST 2026
+TZ=GMT date -d @1774875600
+# Mon Mar 30 13:00:00 GMT 2026
 ```
 
 :::
