@@ -83,8 +83,8 @@ we would add "personal-message" scope as well:
 scope: "post personal-message"
 ```
 
-Now Strava has access to send a post on your feed, and also send a
-private-message to one of your Facebook friends.
+Now Strava has access to send a post on your feed, and also send a personal
+message to one of your Facebook friends.
 
 :::sweatingDuck
 
@@ -93,8 +93,12 @@ You already delegated the authorizations!
 
 :::
 
-Notice how the scope values are space-separated. This makes the scope
-values URL parameter friendly and Authorization Server agnostic.
+Notice how the scope values are space-separated. That is simply the format
+[RFC 6749](https://datatracker.ietf.org/doc/html/rfc6749#section-3.3)
+defined. A single string of space-separated values keeps the whole list in
+one parameter, so it survives a redirect URL and a form body without
+needing any structure. The space itself still has to be percent-encoded as
+`%20` or `+` when it travels in a URL.
 
 ## Scope and The Authorization Server
 
@@ -134,7 +138,13 @@ following in the Authorization Server:
 - Reject the authorization request from the client.
 - Remove certain scopes from the client and approve the authorization
   request.
-- Add more scopes for the client and approve the authorization request.
+- Approve the authorization request as it was asked for.
+
+The OAuth 2.0 spec does allow the Authorization Server to grant a scope
+different from the one the client requested, but in practice you should
+expect the scope requested by the client to be the most that the client
+will ever get. Most Authorization Servers, in practice, only let you narrow
+the scope, never widen it.
 
 This is why it is important for the scope to first be validated by the user
 in the Authorization Server, before the client can reach the protected
@@ -171,12 +181,12 @@ first learn how a token is sent to the protected resource.
 
 Once Strava has an Access Token, it needs to attach it to every request it
 makes to Facebook. According to the
-[OAuth bearer token usage specification](https://tools.ietf.org/html/rfc6750),
+[OAuth bearer token usage specification](https://datatracker.ietf.org/doc/html/rfc6750),
 there are 3 ways to do this. Let's say Strava received the Access Token
 `987tghjkiu6trfghjuytrghj` and now wants to create a post on your feed via
 `POST /me/feed`.
 
-A Form-Encoded POST Body:
+1. A Form-Encoded POST Body:
 
 ```bash
 POST /me/feed
@@ -186,14 +196,14 @@ Content-Type: application/x-www-form-urlencoded
 access_token=987tghjkiu6trfghjuytrghj
 ```
 
-A Query Parameter:
+2. A Query Parameter:
 
 ```bash
 POST /me/feed?access_token=987tghjkiu6trfghjuytrghj
 Host: facebook.com
 ```
 
-The HTTP Authorization Header:
+3. The HTTP Authorization Header:
 
 ```bash
 POST /me/feed
@@ -212,17 +222,20 @@ post.
 
 :::
 
-The Authorization header is the best method to pass the Access Token
-because it has the least chance of being logged or leaked:
+Of those three, only the HTTP Authorization header should be reached for.
+It is the one the OAuth 2.0 specification tells you to use:
 
 - A query parameter gets written to Facebook's server access logs, shows up
   in your browser history, and can leak to third parties through the
   `Referer` header if Facebook's response ever links out somewhere.
+  [RFC 6750](https://datatracker.ietf.org/doc/html/rfc6750) discourages it
+  and only permits it when nothing else will do.
 - A form-encoded body only exists on requests that already have a body.
   It's useless for a `GET` request, so it can't be relied on universally.
 
 The Authorization header avoids all of these problems, which is why it's
-the recommended method.
+the recommended method. OAuth 2.1 goes further and drops the other two
+entirely, so treat the header as the only way to send a token.
 
 :::confusedDuck
 
@@ -238,6 +251,31 @@ HTTP/1.1 401 Unauthorized
 WWW-Authenticate: Bearer realm="facebook", error="invalid_token"
 ```
 
+:::confusedDuck
+
+And what if the token is perfectly good, but Strava tries something the
+scope doesn't cover?
+
+:::
+
+That is a different failure, and it gets a different status code. A `401`
+means Facebook could not establish who is asking. A `403 Forbidden` means
+Facebook knows exactly who is asking and the answer is still no. Let's say
+Strava holds the Access Token with the scope `post` (meaning that Strava
+can only make posts on your feed, on your behalf) and decides to read your
+private messages:
+
+```bash
+HTTP/1.1 403 Forbidden
+WWW-Authenticate: Bearer realm="facebook", error="insufficient_scope", scope="read-messages"
+```
+
+Strava would get an `insufficient_scope` error. Notice that Facebook also
+names the `scope` Strava would have needed to read your private messages.
+That gives a well-behaved client something to act on. It can go back to the
+Authorization Server and ask you for that extra permission, rather than
+retrying the same request.
+
 ## Token Introspection
 
 The introspection request (defined in
@@ -246,9 +284,8 @@ form-encoded HTTP request to the Authorization Server’s introspection
 endpoint. This allows the protected resource to ask the Authorization
 Server: “An OAuth client gave me this Access Token, what is it good for?”
 This means the protected resource doesn't have to trust the token at face
-value. Normally the protected resource would send a query to the endpoint
-path `/introspect` to check the validity of the token received by the
-client.
+value. The protected resource sends a query to that endpoint to check the
+validity of the token received by the client.
 
 This is why the client cannot inflate its own permissions. The scope that
 comes back belongs to the Authorization Server, not to anything the client
@@ -274,8 +311,13 @@ introspection, known as the
 
 ### The Introspection Endpoint
 
-As stated, the Authorization Server would normally accept introspection
-requests on the path `/introspect`.
+The protected resource can query `/introspect` from the Authorization
+Server, which is a common choice and the one we will use, but every
+Authorization Server picks its own. The OAuth 2.0 spec does not define a
+clear name for the introspection endpoint. A protected resource should read
+the `introspection_endpoint` value out of the Authorization Server's
+metadata document, described in
+[RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414).
 
 Here is what a query from the protected resource to the Authorization
 Server would look like once it receives a token from the client:
@@ -304,11 +346,11 @@ that describes the token:
   "scope": "post",
   "client_id": "strava",
   "username": "Hamza",
-  "iss": "http://authorization-server:9001/",
+  "iss": "https://authorization-server:9001/",
   "sub": "hamza",
-  "aud": "http://facebook.com",
-  "iat": 1775865600,
-  "exp": 1783641600
+  "aud": "https://facebook.com",
+  "iat": 1774872000,
+  "exp": 1774875600
 }
 ```
 
@@ -319,8 +361,11 @@ revoked, or because it was never issued by this Authorization Server in the
 first place.
 
 According to our example, `active` is true and the scope is correct. Strava
-will only get permissions to post on behalf of the user Hamza. And from the
-time of writing this blog post, the token is also not expired.
+will only get permissions to post on behalf of the user Hamza.
+
+Look at the two timestamps. The `exp` sits one hour after the `iat`, so
+this Access Token is only good for an hour from the moment it was issued.
+Access Tokens normally should be short lifespans.
 
 :::tip
 
@@ -329,12 +374,12 @@ do so on a bash commandline as follows:
 
 ```bash
 # macOS and BSD
-date -r 1783641600
-# Fri 10 Jul 2026 01:00:00 IST
+date -r 1774875600
+# Mon 30 Mar 2026 14:00:00 IST
 
 # GNU coreutils, so most Linux distributions
-date -d @1783641600
-# Fri Jul 10 01:00:00 IST 2026
+date -d @1774875600
+# Mon Mar 30 14:00:00 IST 2026
 ```
 
 :::
