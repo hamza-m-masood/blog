@@ -144,7 +144,7 @@ statically register a client:
    [Implicit Grant Type](/posts/introduction-to-oauth#delegating-access)
    and the
    [Authorization Code Grant Type](/posts/introduction-to-oauth#enhancing-security).
-   We will go through more grant types in a future blog post!
+   [Part 5](/posts/oauth-grant-types) goes through the rest of them!
 4. **Scopes**: The [scopes](/posts/oauth-protected-resource#scope) that the
    client is allowed to ask for. The Authorization Server will refuse any
    request for a scope outside this list, and it uses this list to tell the
@@ -416,7 +416,8 @@ Once the request is valid, the user is prompted to authenticate. Although
 there are stages in OAuth 2.0 that require the user to be authenticated,
 the spec deliberately says nothing about _how_ that should be done, or how
 the client would learn who the user is. That gap is what OIDC fills by
-sitting on top of OAuth 2.0, which will be discussed in another blog post.
+sitting on top of OAuth 2.0, and it is the subject of
+[Part 7](/posts/openid-connect).
 
 ## The Consent Screen
 
