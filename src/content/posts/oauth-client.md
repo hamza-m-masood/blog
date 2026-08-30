@@ -142,7 +142,7 @@ client ID and client secret from the authorization server.
 <!-- markdownlint-disable -->
 <!-- prettier-ignore-start -->
 :::me
-We’ll cover client registration and how the client grabs the client ID and client secret from the Authorization Server when we explore the Authorization Server in upcoming posts in this series.  
+[Part 4](/posts/oauth-authorization-server#client-registration) covers client registration and how the client grabs the client ID and client secret from the Authorization Server.  
 :::
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->

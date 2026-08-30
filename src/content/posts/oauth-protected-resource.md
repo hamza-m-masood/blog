@@ -219,8 +219,9 @@ this string is authorized to use it, and no additional proof is required.
 
 :::magnifyingglassme
 
-We'll dive deeper into bearer tokens and other token types in a future blog
-post.
+[Part 6](/posts/oauth-token-types) dives deeper into bearer tokens, the
+sender-constrained alternative, and what an Access Token is actually made
+of.
 
 :::
 
@@ -306,9 +307,11 @@ accept that token.
 
 :::me
 
-In a future blog post we will discuss an alternative to token
+[Part 6](/posts/oauth-token-types) discusses an alternative to token
 introspection, known as the
-[JWT Profile for OAuth 2.0 Access Tokens](https://datatracker.ietf.org/doc/html/rfc9068)
+[JWT Profile for OAuth 2.0 Access Tokens](https://datatracker.ietf.org/doc/html/rfc9068),
+which lets the protected resource validate a token without calling the
+Authorization Server at all.
 
 :::
 
