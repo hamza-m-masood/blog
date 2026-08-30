@@ -384,17 +384,30 @@ sitting on top of OAuth 2.0, which will be discussed in another blog post.
 
 ## The Consent Screen
 
-At this stage we will assume the following:
-
-- The client (Strava) is registered
-- The user has accessed Strava and is now redirected to the Authorization
-  Server to confirm that they are comfortable giving Strava permission to
-  make a Facebook post on their behalf.
-
-This is typically what the user consent screen would look like on the
-Authorization Server:
+The request checks out and the user has authenticated, so the Authorization
+Server can finally ask the question the whole flow exists to ask: is the
+user comfortable letting Strava post to Facebook on their behalf? This is
+typically what that screen looks like:
 
 ![Strava Consent](../images/strava-consent.png)
+
+:::confusedDuck
+
+That screen is branded Facebook. I thought the Authorization Server was a
+separate component from the protected resource?
+
+:::
+
+:::me
+
+It is, and in the protocol they stay separate: one issues tokens, the other
+validates them. But they are roles, not necessarily different companies. In
+the real world one organisation usually runs both, so the consent screen
+wears Facebook's branding even though it is the Authorization Server
+talking. That is also why you see a Facebook login here rather than some
+third-party sign-in page.
+
+:::
 
 Once the user approves this message, then the user will officially delegate
 their authorizations to Strava. In this case, Strava will now have
@@ -438,6 +451,39 @@ This is because the next stage in the OAuth dance is for Strava to request
 an Access Token. The Authorization Server must compare the saved
 Authorization Code to the one that Strava will send (along with the client
 ID and secret) when requesting an Access Token.
+
+Concretely, at this point the Authorization Server is holding two records.
+One was written once, at registration, and outlives every flow:
+
+```json
+{
+  "client_id": "strava",
+  "client_secret": "8f3e1c02-a9b7-4d6a-9c8b-1e2f4a5d6c7b",
+  "redirect_uris": ["https://strava.com/callback"],
+  "grant_types": ["authorization_code", "refresh_token"],
+  "scopes": ["post"]
+}
+```
+
+The other was written just now, when the user clicked Allow, and belongs to
+this one flow only:
+
+```json
+{
+  "code": "8V1pr0rJ",
+  "client_id": "strava",
+  "sub": "hamza",
+  "scope": "post",
+  "redirect_uri": "https://strava.com/callback",
+  "code_challenge": "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+  "expires_at": 1755562143,
+  "used": false
+}
+```
+
+Every check the token endpoint is about to run is a comparison against
+those two records. That is the whole job: write down what was agreed, then
+refuse anything that does not match it.
 
 The saved code is short-lived and single-use. The spec recommends a maximum
 lifetime of ten minutes, and once a code has been exchanged for an Access
@@ -626,6 +672,12 @@ compiled into it. So it registers as a public client, and its redirect URI
 is a custom scheme the operating system routes back to the app, something
 like `strava://callback`.
 
+This is a **separate registration** from the web app we set up earlier. The
+website is a confidential client with a secret; the mobile app is a public
+client with none, so it gets its own client ID. We will call it
+`strava-mobile`. One application can easily have several registrations, one
+per deployment that needs different credentials.
+
 Here is the problem. On some platforms nothing stops a second, malicious
 app from claiming that same `strava://` scheme. If it does, the operating
 system may hand _it_ the redirect instead, Authorization Code and all. The
@@ -656,7 +708,7 @@ prove it knows that secret when it comes to redeem the code.
 The `/authorize` request picks up two new parameters:
 
 ```bash
-GET /authorize?response_type=code&scope=post&client_id=strava&redirect_uri=strava%3A%2F%2Fcallback&state=af0ifjsldkj&code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&code_challenge_method=S256 HTTP/1.1
+GET /authorize?response_type=code&scope=post&client_id=strava-mobile&redirect_uri=strava%3A%2F%2Fcallback&state=af0ifjsldkj&code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&code_challenge_method=S256 HTTP/1.1
 Host: auth-server
 ```
 
@@ -669,7 +721,7 @@ POST /token HTTP/1.1
 Host: auth-server
 Content-type: application/x-www-form-urlencoded
 
-grant_type=authorization_code&redirect_uri=strava%3A%2F%2Fcallback&client_id=strava&code=8V1pr0rJ&code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+grant_type=authorization_code&redirect_uri=strava%3A%2F%2Fcallback&client_id=strava-mobile&code=8V1pr0rJ&code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
 ```
 
 Note that there is no `Authorization: Basic` header here, because a public
