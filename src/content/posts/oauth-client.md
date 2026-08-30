@@ -3,8 +3,9 @@ title: "Part 2 - The OAuth Client"
 published: 2025-07-25
 draft: false
 description:
-  "Learning about the OAuth client from the authorization grant type"
-tags: ["OAuth"]
+  "How a client redirects the user, trades an Authorization Code for an
+  Access Token, and uses the state parameter to shut down CSRF attacks."
+tags: ["OAuth", "Security"]
 series: "OAuth Simplified"
 ---
 

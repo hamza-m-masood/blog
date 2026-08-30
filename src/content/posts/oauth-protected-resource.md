@@ -2,8 +2,10 @@
 title: "Part 3 - The OAuth Protected Resource"
 published: 2026-03-30
 draft: false
-description: "Learning about the OAuth protected resource"
-tags: ["OAuth"]
+description:
+  "How a protected resource validates Access Tokens, enforces scope, and
+  uses token introspection so it has to trust nothing the client sends."
+tags: ["OAuth", "Security"]
 series: "OAuth Simplified"
 ---
 
@@ -177,7 +179,7 @@ That lookup is what OAuth calls
 Before we dive into the inner workings of Token Introspection, we must
 first learn how a token is sent to the protected resource.
 
-## Sending The Token
+## Sending The Access Token
 
 Once Strava has an Access Token, it needs to attach it to every request it
 makes to Facebook. According to the

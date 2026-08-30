@@ -2,9 +2,12 @@
 title: Part 1 - Introduction To OAuth
 published: 2025-06-01T00:00:00.000Z
 draft: false
-description: Introducing The OAuth protocol
+description:
+  Why OAuth exists, the four components it introduces, and how delegating
+  access works without ever handing over your password.
 tags:
   - OAuth
+  - Authentication
 series: OAuth Simplified
 ---
 
@@ -279,8 +282,8 @@ see the OAuth flow in action through an animated diagram!
 
 There is a potential security risk with the flow mentioned above. The
 entire authorization flow is happening on the
-[front channel](https://beingcraftsman.com/2023/12/02/simple-guide-to-front-channel-and-back-channel-requests/),
-from the browser, which can be listened to by an attacker. In that case, an
+[front channel](/posts/oauth-client#back-channel-vs-front-channel), from
+the browser, which can be listened to by an attacker. In that case, an
 attacker can intercept the flow and grab the OAuth Access Token for
 malicious activities.
 

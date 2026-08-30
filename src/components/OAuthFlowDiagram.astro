@@ -1,0 +1,753 @@
+---
+/**
+ * Interactive sequence diagram for the OAuth Authorization Server flow.
+ * Renders all 20 steps at once; selecting one highlights that arrow and
+ * dims the rest. Steps 5, 6, 10, 14 and 20 happen inside the Authorization
+ * Server and are drawn as tabs on its lifeline rather than as arrows.
+ */
+
+const LANES = [
+  { id: 'user', label: 'User', x: 96, w: 44 },
+  { id: 'client', label: 'Strava', x: 235, w: 54 },
+  { id: 'as', label: 'Auth Server', x: 386, w: 84 },
+  { id: 'rs', label: 'Facebook', x: 522, w: 62 },
+]
+
+type Step = {
+  n: number
+  /** lane index the arrow leaves from */
+  from: number
+  /** lane index the arrow points at; omit for a step internal to `from` */
+  to?: number
+  /** short label drawn inside the diagram */
+  label: string
+  /** full prose shown in the step list, may contain links */
+  html: string
+}
+
+const STEPS: Step[] = [
+  {
+    n: 1,
+    from: 1,
+    to: 2,
+    label: 'register client',
+    html: 'Strava <a href="#client-registration">registers</a> with the Authorization Server. The Authorization Server <b>stores</b> the client ID, client secret, redirect URIs, allowed grant types and allowed scopes.',
+  },
+  {
+    n: 2,
+    from: 0,
+    to: 1,
+    label: 'user opens Strava',
+    html: 'The User accesses Strava.',
+  },
+  {
+    n: 3,
+    from: 1,
+    label: 'make state + code_verifier',
+    html: 'Strava generates a <code>state</code> and a <code>code_verifier</code>, <b>keeps both to itself</b>, and hashes the verifier into a <code>code_challenge</code>.',
+  },
+  {
+    n: 4,
+    from: 1,
+    to: 2,
+    label: '/authorize + code_challenge',
+    html: 'Strava redirects the User to the <a href="#the-authorization-endpoint">authorization endpoint</a> with its client ID, redirect URI, requested scope, <code>state</code> and <code>code_challenge</code>.',
+  },
+  {
+    n: 5,
+    from: 2,
+    label: 'check client_id + redirect_uri',
+    html: 'The Authorization Server <b>checks</b> that the client ID is known and that the redirect URI exactly matches a registered one. If either fails, it stops here and renders an error on its own page.',
+  },
+  {
+    n: 6,
+    from: 2,
+    label: 'check response_type + scopes',
+    html: 'The Authorization Server <b>checks</b> that the response type and the requested scopes are within what Strava registered.',
+  },
+  {
+    n: 7,
+    from: 0,
+    to: 2,
+    label: 'authenticate',
+    html: 'The User authenticates with the Authorization Server.',
+  },
+  {
+    n: 8,
+    from: 2,
+    to: 0,
+    label: 'consent screen: post',
+    html: 'The Authorization Server shows the <a href="#the-consent-screen">consent screen</a> listing the <code>post</code> scope.',
+  },
+  { n: 9, from: 0, to: 2, label: 'approve', html: 'The User approves.' },
+  {
+    n: 10,
+    from: 2,
+    label: 'store code + challenge (10 min)',
+    html: 'The Authorization Server generates an Authorization Code and <b>stores</b> it against this user, this client, the approved scope, the redirect URI, and the <code>code_challenge</code>, with a ten minute expiry.',
+  },
+  {
+    n: 11,
+    from: 2,
+    to: 1,
+    label: '302 ?code + state',
+    html: 'The Authorization Server redirects the User back to Strava\'s registered redirect URI with the Authorization Code and the <a href="/posts/oauth-client#the-state-parameter"><code>state</code></a> echoed back unchanged.',
+  },
+  {
+    n: 12,
+    from: 1,
+    label: 'check state matches session',
+    html: 'Strava <b>checks</b> the returned <code>state</code> against its session and rejects the callback if it does not match.',
+  },
+  {
+    n: 13,
+    from: 1,
+    to: 2,
+    label: '/token + code + code_verifier',
+    html: 'Strava calls the <a href="#the-token-endpoint">token endpoint</a> on the back channel with the Authorization Code, its client credentials, the redirect URI and the <code>code_verifier</code>.',
+  },
+  {
+    n: 14,
+    from: 2,
+    label: 'check code + SHA256(verifier)',
+    html: 'The Authorization Server <b>checks</b> the client credentials, that the code exists and is unused and unexpired, that the code was issued to this client, that the redirect URI matches, and that the hash of the verifier equals the stored <a href="#pkce"><code>code_challenge</code></a>.',
+  },
+  {
+    n: 15,
+    from: 2,
+    to: 1,
+    label: 'access_token + refresh_token',
+    html: 'The Authorization Server <b>marks the code as used</b> and issues an Access Token and a <a href="#issuing-refresh-tokens">Refresh Token</a>, storing both against the user\'s consent.',
+  },
+  {
+    n: 16,
+    from: 1,
+    to: 3,
+    label: 'GET /resource + Bearer',
+    html: 'Strava calls Facebook with the Access Token.',
+  },
+  {
+    n: 17,
+    from: 3,
+    to: 2,
+    label: '/introspect → active: true',
+    html: 'Facebook <a href="/posts/oauth-protected-resource#token-introspection">introspects the token</a> with the Authorization Server, which answers <code>active: true</code> with the <code>post</code> scope.',
+  },
+  {
+    n: 18,
+    from: 3,
+    to: 1,
+    label: '200 OK — post published',
+    html: "Facebook accepts the request and Strava's post goes up.",
+  },
+  {
+    n: 19,
+    from: 1,
+    to: 2,
+    label: 'grant_type=refresh_token',
+    html: 'An hour later the Access Token expires. Strava sends the Refresh Token to <code>/token</code>.',
+  },
+  {
+    n: 20,
+    from: 2,
+    label: 'rotate refresh token',
+    html: 'The Authorization Server <b>checks</b> that the Refresh Token is unrevoked and bound to this client, issues a new Access Token, <b>rotates</b> the Refresh Token, and invalidates the old one.',
+  },
+]
+
+/* Every label gets its own full-width line with the arrow underneath, so the
+   drawing stays legible at any column width. */
+const W = 580
+const HEAD_H = 46
+const TOP = 26
+const GAP = 40
+const H = TOP + (STEPS.length - 1) * GAP + 24
+const y = (n: number) => TOP + (n - 1) * GAP
+const laneX = (i: number) => LANES[i].x
+---
+
+<figure class="oauth-flow" data-oauth-flow>
+  <svg class="of-defs" aria-hidden="true" focusable="false">
+    <defs>
+      <marker
+        id="of-head"
+        viewBox="0 0 10 10"
+        refX="9"
+        refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto-start-reverse"
+      >
+        <path d="M 0 1 L 9 5 L 0 9 z" class="of-headshape"></path>
+      </marker>
+      <marker
+        id="of-head-as"
+        viewBox="0 0 10 10"
+        refX="9"
+        refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto-start-reverse"
+      >
+        <path d="M 0 1 L 9 5 L 0 9 z" class="of-headshape is-as"></path>
+      </marker>
+      <marker
+        id="of-head-on"
+        viewBox="0 0 10 10"
+        refX="9"
+        refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto-start-reverse"
+      >
+        <path d="M 0 1 L 9 5 L 0 9 z" class="of-headshape is-on"></path>
+      </marker>
+    </defs>
+  </svg>
+
+  <div class="of-frame">
+    <svg viewBox={`0 0 ${W} ${HEAD_H}`} class="of-head" aria-hidden="true">
+      {
+        LANES.map((l) => (
+          <g>
+            <rect
+              x={l.x - l.w / 2}
+              y="8"
+              width={l.w}
+              height="26"
+              rx="3"
+              class="of-lanebox"
+            />
+            <text x={l.x} y="25" class="of-lanetext">
+              {l.label}
+            </text>
+            <line x1={l.x} y1="34" x2={l.x} y2={HEAD_H} class="of-lifeline" />
+          </g>
+        ))
+      }
+    </svg>
+
+    <div class="of-scroll" data-of-scroll>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        role="img"
+        aria-label="Sequence diagram of the twenty steps of an OAuth flow, seen from inside the Authorization Server"
+        class="of-svg"
+      >
+        {LANES.map((l) => <line x1={l.x} y1="0" x2={l.x} y2={H} class="of-lifeline" />)}
+
+        {
+          STEPS.map((s) => {
+            const ly = y(s.n)
+            const ay = ly + 12
+            const internal = s.to === undefined
+            const asInternal = internal && s.from === 2
+            const x1 = laneX(s.from)
+            const x2 = internal ? 0 : laneX(s.to as number)
+            const dir = x2 > x1 ? 1 : -1
+            return (
+              <g
+                class:list={['of-step', { 'is-internal': internal, 'is-as': asInternal }]}
+                data-step={s.n}
+                data-y={ly}
+              >
+                <rect class="of-hit" x="0" y={ly - 12} width={W} height={GAP} />
+                <circle class="of-badge" cx="11" cy={ly - 3} r="8" />
+                <text class="of-badgetext" x="11" y={ly}>
+                  {s.n}
+                </text>
+                <text class="of-label" x="24" y={ly}>
+                  {s.label}
+                </text>
+                {internal ? (
+                  <path class="of-loop" d={`M ${x1} ${ay - 7} h 12 v 14 h -10`} />
+                ) : (
+                  <line
+                    class="of-arrow"
+                    x1={x1 + 3 * dir}
+                    y1={ay}
+                    x2={x2 - 5 * dir}
+                    y2={ay}
+                    marker-end="url(#of-head)"
+                  />
+                )}
+              </g>
+            )
+          })
+        }
+      </svg>
+    </div>
+  </div>
+
+  <div class="of-controls">
+    <button type="button" class="of-btn" data-of-prev aria-label="Previous step"
+      >&#8592;</button
+    >
+    <button type="button" class="of-btn of-play" data-of-play aria-live="polite"
+      >Play</button
+    >
+    <button type="button" class="of-btn" data-of-next aria-label="Next step"
+      >&#8594;</button
+    >
+    <span class="of-status" data-of-status aria-live="polite">Showing all 20 steps</span>
+    <button type="button" class="of-btn of-reset" data-of-reset hidden>Show all</button>
+  </div>
+
+  <ol class="of-steps">
+    {
+      STEPS.map((s) => (
+        <li
+          class:list={['of-item', { 'is-as': s.to === undefined && s.from === 2 }]}
+          data-item={s.n}
+          value={s.n}
+        >
+          <button
+            type="button"
+            class="of-itembtn"
+            data-of-select={s.n}
+            aria-pressed="false"
+          >
+            <span class="of-itemtext" set:html={s.html} />
+          </button>
+        </li>
+      ))
+    }
+  </ol>
+
+  <figcaption class="of-caption">
+    Steps <b>5</b>, <b>6</b>, <b>10</b>, <b>14</b> and <b>20</b> are marked out because nothing
+    crosses the network. They happen entirely inside the Authorization Server, and they are
+    the steps that make every other step safe.
+  </figcaption>
+</figure>
+
+<style>
+  .oauth-flow {
+    margin: 2rem 0;
+    font-family: var(--theme-font), monospace;
+  }
+
+  .of-frame {
+    border: 1px solid var(--theme-separator);
+    border-radius: 4px;
+    background: var(--theme-background);
+    overflow-x: auto;
+  }
+
+  .of-frame {
+    margin-inline: auto;
+  }
+
+  .of-head {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-bottom: 1px solid var(--theme-separator);
+  }
+
+  .of-scroll {
+    max-height: 26rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .of-scroll {
+      scroll-behavior: auto;
+    }
+  }
+
+  .of-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* ---- lanes ---- */
+  .of-lifeline {
+    stroke: var(--theme-separator);
+    stroke-width: 1;
+    stroke-dasharray: 3 4;
+    opacity: 0.5;
+  }
+  .of-lanebox {
+    fill: var(--theme-background);
+    stroke: var(--theme-accent);
+    stroke-width: 1.5;
+  }
+  .of-lanetext {
+    fill: var(--theme-foreground);
+    font-size: 8.5px;
+    font-weight: 700;
+    text-anchor: middle;
+  }
+
+  /* ---- steps ---- */
+  .of-step {
+    opacity: 0.82;
+    cursor: pointer;
+    transition:
+      opacity 0.18s ease,
+      filter 0.18s ease;
+  }
+  .of-hit {
+    fill: transparent;
+  }
+  .of-arrow {
+    stroke: var(--theme-foreground);
+    stroke-width: 1.5;
+  }
+  .of-label {
+    fill: var(--theme-foreground);
+    font-size: 10.5px;
+    text-anchor: start;
+    /* knock the lifelines out from behind the label so it stays readable */
+    paint-order: stroke;
+    stroke: var(--theme-background);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+  }
+  .of-badge {
+    fill: var(--theme-background);
+    stroke: var(--theme-separator);
+    stroke-width: 1.5;
+  }
+  .of-badgetext {
+    fill: var(--theme-foreground);
+    font-size: 9px;
+    font-weight: 700;
+    text-anchor: middle;
+  }
+  .of-headshape {
+    fill: var(--theme-foreground);
+  }
+  .of-headshape.is-on {
+    fill: var(--theme-accent);
+  }
+  .of-headshape.is-as {
+    fill: var(--theme-yellow);
+  }
+
+  /* self-message: the participant acts on itself, nothing leaves the lifeline */
+  .of-loop {
+    fill: none;
+    stroke: var(--theme-foreground);
+    stroke-width: 1.5;
+    marker-end: url(#of-head);
+  }
+  .of-step.is-as .of-loop {
+    stroke: var(--theme-yellow);
+    marker-end: url(#of-head-as);
+  }
+
+  /* the five steps that never touch the network */
+  .of-step.is-as .of-loop {
+    stroke: var(--theme-yellow);
+  }
+  .of-step.is-as .of-label,
+  .of-step.is-as .of-badgetext {
+    fill: var(--theme-yellow);
+  }
+  .of-step.is-as .of-badge {
+    stroke: var(--theme-yellow);
+  }
+
+  /* ---- selection ---- */
+  .oauth-flow[data-active] .of-step {
+    opacity: 0.22;
+  }
+  .oauth-flow[data-active] .of-step.is-active {
+    opacity: 1;
+  }
+  .of-step.is-active .of-arrow,
+  .of-step.is-active .of-loop {
+    stroke: var(--theme-accent);
+    stroke-width: 2.5;
+  }
+  .of-step.is-active .of-arrow,
+  .of-step.is-active .of-loop {
+    marker-end: url(#of-head-on);
+  }
+  .of-step.is-active .of-label,
+  .of-step.is-active .of-badgetext {
+    fill: var(--theme-accent);
+    font-weight: 700;
+  }
+  .of-step.is-active .of-badge {
+    stroke: var(--theme-accent);
+    stroke-width: 2;
+  }
+
+  /* ---- controls ---- */
+  .of-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.6rem;
+  }
+  .of-btn {
+    font-family: inherit;
+    font-size: 0.85rem;
+    line-height: 1;
+    padding: 0.4rem 0.7rem;
+    color: var(--theme-foreground);
+    background: var(--theme-background);
+    border: 1px solid var(--theme-separator);
+    border-radius: 4px;
+    cursor: pointer;
+    transition:
+      border-color 0.15s ease,
+      color 0.15s ease;
+  }
+  .of-btn:hover,
+  .of-btn:focus-visible {
+    color: var(--theme-accent);
+    border-color: var(--theme-accent);
+    outline: none;
+  }
+  .of-status {
+    font-size: 0.8rem;
+    opacity: 0.75;
+    margin-left: 0.25rem;
+  }
+
+  /* ---- step list ---- */
+  .of-steps {
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: none;
+  }
+  .of-item {
+    display: flex;
+    margin: 0;
+  }
+  .of-itembtn {
+    display: flex;
+    gap: 0.7rem;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    font-size: 0.9rem;
+    color: var(--theme-foreground);
+    background: transparent;
+    border: 0;
+    border-left: 2px solid transparent;
+    padding: 0.35rem 0.5rem;
+    cursor: pointer;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
+  }
+  .of-itembtn::before {
+    content: counter(of-n);
+    counter-increment: of-n;
+    flex: 0 0 1.6rem;
+    text-align: right;
+    font-weight: 700;
+    opacity: 0.55;
+  }
+  .of-itembody {
+    min-width: 0;
+  }
+  .of-steps {
+    counter-reset: of-n;
+  }
+  .of-item.is-as .of-itembtn::before {
+    color: var(--theme-yellow);
+    opacity: 1;
+  }
+  .of-itembtn:hover,
+  .of-itembtn:focus-visible {
+    background: color-mix(in oklab, var(--theme-accent) 8%, transparent);
+    outline: none;
+  }
+  .of-item.is-active .of-itembtn {
+    border-left-color: var(--theme-accent);
+    background: color-mix(in oklab, var(--theme-accent) 12%, transparent);
+  }
+  .of-item.is-active .of-itembtn::before {
+    color: var(--theme-accent);
+    opacity: 1;
+  }
+  .of-itemtext :global(a) {
+    color: var(--theme-link);
+  }
+  .of-itemtext :global(code) {
+    font-size: 0.92em;
+  }
+  .of-itemtext :global(b) {
+    color: var(--theme-accent);
+  }
+
+  .of-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+  @media (max-width: 40rem) {
+    .of-label {
+      font-size: 12.5px;
+    }
+    .of-lanetext {
+      font-size: 10px;
+    }
+    .of-badgetext {
+      font-size: 10.5px;
+    }
+    .of-itembtn {
+      padding: 0.5rem 0.5rem;
+      border-left-width: 3px;
+    }
+    .of-btn {
+      padding: 0.6rem 0.9rem;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .of-label {
+      font-size: 14px;
+    }
+    .of-lanetext {
+      font-size: 11.5px;
+    }
+    .of-badgetext {
+      font-size: 12px;
+    }
+  }
+
+  .of-caption {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    opacity: 0.8;
+    line-height: 1.6;
+  }
+  .of-caption :global(b),
+  .of-caption b {
+    color: var(--theme-yellow);
+  }
+</style>
+
+<script>
+  function initOAuthFlow() {
+    document.querySelectorAll<HTMLElement>('[data-oauth-flow]').forEach((root) => {
+      if (root.dataset.ofReady) return
+      root.dataset.ofReady = '1'
+
+      const svg = root.querySelector<SVGSVGElement>('.of-svg')!
+      const scroller = root.querySelector<HTMLElement>('[data-of-scroll]')!
+      const stepEls = Array.from(root.querySelectorAll<SVGGElement>('.of-step'))
+      const itemEls = Array.from(root.querySelectorAll<HTMLElement>('.of-item'))
+      const status = root.querySelector<HTMLElement>('[data-of-status]')!
+      const playBtn = root.querySelector<HTMLButtonElement>('[data-of-play]')!
+      const resetBtn = root.querySelector<HTMLButtonElement>('[data-of-reset]')!
+      const total = itemEls.length
+
+      let active: number | null = null
+      let timer: number | null = null
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+      function scrollTo(n: number) {
+        const behavior: ScrollBehavior = reduceMotion ? 'auto' : 'smooth'
+        const g = svg.querySelector<SVGGElement>(`.of-step[data-step="${n}"]`)
+        if (!g) return
+        const ratio = svg.getBoundingClientRect().height / svg.viewBox.baseVal.height
+        const target = Number(g.dataset.y) * ratio - scroller.clientHeight / 2
+        scroller.scrollTo({ top: Math.max(0, target), behavior })
+      }
+
+      function render(scroll: boolean) {
+        stepEls.forEach((el) => {
+          el.classList.toggle('is-active', Number(el.dataset.step) === active)
+        })
+        itemEls.forEach((el) => {
+          const on = Number(el.dataset.item) === active
+          el.classList.toggle('is-active', on)
+          el.querySelector('button')?.setAttribute('aria-pressed', String(on))
+        })
+        if (active === null) {
+          delete root.dataset.active
+          status.textContent = `Showing all ${total} steps`
+          resetBtn.hidden = true
+        } else {
+          root.dataset.active = String(active)
+          status.textContent = `Step ${active} of ${total}`
+          resetBtn.hidden = false
+          if (scroll) scrollTo(active)
+        }
+      }
+
+      function select(n: number | null, scroll = true) {
+        active = n === null ? null : Math.min(total, Math.max(1, n))
+        render(scroll)
+      }
+
+      function stop() {
+        if (timer !== null) window.clearInterval(timer)
+        timer = null
+        playBtn.textContent = 'Play'
+      }
+
+      function play() {
+        if (timer !== null) return stop()
+        if (active === null || active >= total) select(1)
+        playBtn.textContent = 'Pause'
+        timer = window.setInterval(() => {
+          if (active !== null && active >= total) return stop()
+          select((active ?? 0) + 1)
+        }, 2600)
+      }
+
+      root.querySelectorAll<HTMLElement>('[data-of-select]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          stop()
+          const n = Number(btn.dataset.ofSelect)
+          select(active === n ? null : n)
+        })
+      })
+
+      stepEls.forEach((g) => {
+        g.addEventListener('click', () => {
+          stop()
+          const n = Number(g.dataset.step)
+          select(active === n ? null : n)
+        })
+      })
+
+      root.querySelector('[data-of-prev]')!.addEventListener('click', () => {
+        stop()
+        select(active === null ? total : active - 1)
+      })
+      root.querySelector('[data-of-next]')!.addEventListener('click', () => {
+        stop()
+        select(active === null ? 1 : active + 1)
+      })
+      playBtn.addEventListener('click', play)
+      resetBtn.addEventListener('click', () => {
+        stop()
+        select(null)
+      })
+
+      root.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+          e.preventDefault()
+          stop()
+          const d = e.key === 'ArrowRight' ? 1 : -1
+          select(active === null ? (d === 1 ? 1 : total) : active + d)
+        } else if (e.key === 'Escape') {
+          stop()
+          select(null)
+        }
+      })
+
+      render(false)
+    })
+  }
+
+  initOAuthFlow()
+  document.addEventListener('astro:page-load', initOAuthFlow)
+</script>
