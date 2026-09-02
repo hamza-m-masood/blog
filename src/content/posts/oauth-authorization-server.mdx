@@ -84,6 +84,11 @@ Great! Let's start from the top. Client registration!
 
 ## Client Registration
 
+We will discuss the two most used methods to register a client.
+
+- Static Client Registration.
+- Dynamic Client Registration.
+
 ### Static Client Registration
 
 So far, in previous blog posts, we have been statically registering the
@@ -353,18 +358,25 @@ itself:
 }
 ```
 
+:::magnifyingglassme
+
+Hopefully the above endpoints look familiar to you. Especially after
+reading the previous blog posts.
+
+:::
+
 Everything a client needs is in there. Where to send the user, where to
 exchange the code, where to register itself, which scopes exist, and which
 grant types it is allowed to ask for. A client only has to be configured
-with one value, the issuer URL, and it can discover the rest.
+with one value, **the issuer URL**, and it can discover the rest.
 
 :::note
 
 The client builds the metadata URL out of the issuer it was given, so a
-client configured with `https://auth-server` fetches
+client configured with issuer `https://auth-server` fetches
 `https://auth-server/.well-known/oauth-authorization-server`. When the
-response comes back, its `issuer` field must be identical to the
-`https://auth-server` the client started with.
+response comes back, the response's `issuer` field must be identical to the
+`issuer` the client started with: `https://auth-server`.
 
 This comparison is vital because every endpoint inside the response is an
 absolute URL that can point anywhere. A document served from `auth-server`
@@ -450,7 +462,9 @@ redirected back to Strava.
 This is where the Redirect URIs become very important for the registered
 client (Strava). The Authorization Server needs to know where exactly to
 send the user back to. This is also a safety mechanism, since any redirect
-URI outside the list of registered redirect URIs will not be accepted.
+URI outside the list of registered redirect URIs will not be accepted. This
+effectively means that the Authorization Server holds a whitelist of
+Redirect URIs for each client.
 
 :::
 
@@ -471,8 +485,9 @@ coming back alongside the code. The Authorization Server never interprets
 this value. It simply echoes back, byte for byte, whatever the client sent
 on the way in, so that the client can compare it against what it stored and
 reject the callback if it doesn't match. An Authorization Server that
-silently drops `state` breaks the client's only defence against the CSRF
-attack we simulated in the previous post.
+silently drops `state` breaks the client's only defence against the
+[CSRF](/posts/oauth-client#simulating-a-csrf-attack) attack we simulated in
+the previous post.
 
 The Authorization Code is saved in the Authorization Server's database.
 This is because the next stage in the OAuth dance is for Strava to request
@@ -481,7 +496,8 @@ Authorization Code to the one that Strava will send (along with the client
 ID and secret) when requesting an Access Token.
 
 Concretely, at this point the Authorization Server is holding two records.
-One was written once, at registration, and outlives every flow:
+The first record was written when the client was registered, and outlives
+every OAuth flow:
 
 ```json
 {
@@ -493,8 +509,8 @@ One was written once, at registration, and outlives every flow:
 }
 ```
 
-The other was written just now, when the user clicked Allow, and belongs to
-this one flow only:
+The second record was written just now, when the user clicked Allow, and
+belongs to this one flow only:
 
 ```json
 {
@@ -509,16 +525,17 @@ this one flow only:
 }
 ```
 
-Every check the token endpoint is about to run is a comparison against
-those two records. That is the whole job: write down what was agreed, then
-refuse anything that does not match it.
+We will discuss the token endpoint next, where client will request an
+Access Token. Every check the token endpoint is about to run is a
+comparison against those two records. That is the whole job: move forward
+with what was agreed, then refuse anything that does not match it.
 
-The saved code is short-lived and single-use. The spec recommends a maximum
-lifetime of ten minutes, and once a code has been exchanged for an Access
-Token the Authorization Server must reject any further attempt to use it.
-If a code that has already been redeemed shows up again, that is a strong
-signal it leaked, and the Authorization Server should revoke the tokens it
-previously issued for that code.
+The saved Authorization code is short-lived and single-use. The spec
+recommends a maximum lifetime of ten minutes, and once a code has been
+exchanged for an Access Token the Authorization Server must reject any
+further attempt to use it. If a code that has already been redeemed shows
+up again, that is a strong signal it leaked, and the Authorization Server
+should revoke the Access Token it previously issued for that code.
 
 ## The Token Endpoint
 
