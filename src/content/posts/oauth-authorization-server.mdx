@@ -33,19 +33,37 @@ The Authorization Server is responsible for the following:
   resources.
 - Publishing its own configuration so clients can find all of the above.
 
+## Our Example
+
+Let's reuse the same example that we have been using from the start.
+
+- **Resource Owner**: you 🫵, the owner of the Facebook account.
+- **Client**: Strava, the running app that wants to post your workout to
+  Facebook on your behalf.
+- **Protected Resource**: Facebook, the API that holds your account.
+- **Authorization Server**: the component this post is about. It is the one
+  that registers Strava, authenticates you, asks whether you are happy for
+  Strava to post on your behalf, and hands Strava the tokens that Facebook
+  will accept.
+
+In the real world Facebook runs both the protected resource and the
+Authorization Server, but remember that these are two separate roles.
+Facebook the API, validates Access Tokens, and Facebook the Authorization
+Server, issues them. For the rest of this post we only care about Facebook
+the Authorization Server.
+
 ## The Whole Flow At A Glance
 
-Before we pull any of that apart, here is the entire thing in motion. This
-is every step of an OAuth flow from beginning to end, seen from inside the
-Authorization Server, watching what it **stores** and what it **checks** at
-each point.
+Below is every step of an OAuth flow from beginning to end, seen from
+inside the Authorization Server, watching what it **stores** and what it
+**checks** at each point.
 
 <OAuthFlowDiagram />
 
-:::confusedDuck
+:::cryingDuck
 
-Half of those steps used words I have never seen before. What is a
-`code_verifier`? Why is a token being rotated?
+What's going on!!! What is a `code_verifier`? Why is a token being rotated?
+This animation is too confusing!
 
 :::
 
@@ -53,8 +71,14 @@ Half of those steps used words I have never seen before. What is a
 
 Don't worry about it yet! Every one of those twenty steps gets its own
 section below, in roughly the order they happen. Come back and replay the
-animation once you reach the conclusion and the whole thing should click.
-:muscle:
+animation once you reach the conclusion and the whole flow should make
+sense. :muscle:
+
+:::
+
+:::giggleDuck
+
+Great! Let's start from the top. Client registration!
 
 :::
 

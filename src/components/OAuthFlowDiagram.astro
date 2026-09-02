@@ -31,7 +31,7 @@ const STEPS: Step[] = [
     from: 1,
     to: 2,
     label: 'register client',
-    html: 'Strava <a href="#client-registration">registers</a> with the Authorization Server. The Authorization Server <b>stores</b> the client ID, client secret, redirect URIs, allowed grant types and allowed scopes.',
+    html: 'Strava dynamically <a href="#dynamic-client-registration">registers</a> with the Authorization Server. The Authorization Server <b>stores</b> the client ID, client secret, redirect URIs, allowed grant types and allowed scopes.',
   },
   {
     n: 2,
@@ -44,7 +44,7 @@ const STEPS: Step[] = [
     n: 3,
     from: 1,
     label: 'make state + code_verifier',
-    html: 'Strava generates a <code>state</code> and a <code>code_verifier</code>, <b>keeps both to itself</b>, and hashes the verifier into a <code>code_challenge</code>.',
+    html: 'Strava generates a <code>state</code> (to guard against <a href="/posts/oauth-client#the-state-parameter">CSRF</a> attacks) and a <code>code_verifier</code>, <b>keeps both to itself</b>, and hashes the verifier into a <code>code_challenge</code>.',
   },
   {
     n: 4,
@@ -315,7 +315,7 @@ const laneX = (i: number) => LANES[i].x
   </ol>
 
   <figcaption class="of-caption">
-    Steps <b>5</b>, <b>6</b>, <b>10</b>, <b>14</b> and <b>20</b> are marked out because nothing
+    Steps <b>5</b>, <b>6</b>, <b>10</b>, <b>14</b> and <b>20</b> are highlighted because nothing
     crosses the network. They happen entirely inside the Authorization Server, and they are
     the steps that make every other step safe.
   </figcaption>
