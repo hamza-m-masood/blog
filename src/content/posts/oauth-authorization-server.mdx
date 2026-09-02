@@ -209,26 +209,26 @@ registered to the Authorization Server.
 
 ### Dynamic Client Registration
 
-Static client registration does not work well in every case. Let's take
-Email as another example. A mail provider's Authorization Server has to let
-outside applications access a user's inbox on user's behalf, and unlike
-Strava, there's no single client app doing that. There could be multiple
-apps that would want access to the user's mailbox. A user might connect
-with Thunderbird, Apple Mail, Outlook, or any of dozens of other email
-clients, with new ones showing up all the time.
+Static Client registration is the default but sometimes it can be quite
+inconvenient. Let's take Email as another example. A mail provider's
+Authorization Server has to let outside applications access a user's inbox
+on user's behalf, and unlike Strava, there's no single client app doing
+that. There could be multiple apps that would want access to the user's
+mailbox. A user might connect with Thunderbird, Apple Mail, Outlook, or any
+of dozens of other email clients, with new ones showing up all the time.
 
 Nobody wants an administrator manually registering every email client that
 might ever try to connect. That doesn't scale.
 
 The solution to the above scalability problem is Dynamic Client
-Registration: A way for clients to dynamically register themselves on an
-Authorization Server that accepts this protocol. Without the need for an
+Registration. It is a way for clients to dynamically register themselves on
+an Authorization Server that accepts this protocol. Without the need for an
 administrator to login to the Authorization Server and manually enter every
 client.
 
-Dynamic Client Registration is done by the Authorization Server exposing a
-registration endpoint, conventionally called `/register`. The actual path
-is not fixed by the spec. A client discovers it from the Authorization
+Dynamic Client Registration is done by the Authorization Server which
+exposes a registration endpoint, normally called `/register`. The actual
+path is not fixed by the spec. A client discovers it from the Authorization
 Server's metadata document, published under the `registration_endpoint`
 field. The client itself sends a request to this endpoint describing what
 it needs, instead of an administrator filling out a form on the
@@ -376,11 +376,11 @@ client configured with issuer `https://auth-server` fetches
 response comes back, the response's `issuer` field must be identical to the
 `issuer` the client started with: `https://auth-server`.
 
-This comparison is vital because every endpoint inside the response is an
-absolute URL that can point anywhere. A document served from `auth-server`
-that claimed `"issuer": "https://evil-server"` would be one server speaking
-on behalf of another, and a client that skipped the check would happily
-send the user, the Authorization Code, and its `client secret` to whatever
+Every endpoint inside the response is an absolute URL that can point
+anywhere. A document served from `auth-server` that claimed
+`"issuer": "https://evil-server"` would be one server speaking on behalf of
+another, and a client that skipped the check would happily send the user,
+the Authorization Code, and its `client secret` to whatever
 `token_endpoint` that document listed.
 
 ## The Authorization Endpoint
@@ -778,7 +778,7 @@ Let's go!
 
 ## PKCE
 
-Way back in the client registration section, our duck asked a very good
+Way back in the client registration section, our duck asked an excellent
 question: if a public client gets no client secret, what stops somebody
 else from using its `client ID`? It is time to answer that.
 
