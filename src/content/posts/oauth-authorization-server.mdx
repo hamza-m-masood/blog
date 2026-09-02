@@ -370,8 +370,6 @@ exchange the code, where to register itself, which scopes exist, and which
 grant types it is allowed to ask for. A client only has to be configured
 with one value, **the issuer URL**, and it can discover the rest.
 
-:::note
-
 The client builds the metadata URL out of the issuer it was given, so a
 client configured with issuer `https://auth-server` fetches
 `https://auth-server/.well-known/oauth-authorization-server`. When the
@@ -384,8 +382,6 @@ that claimed `"issuer": "https://evil-server"` would be one server speaking
 on behalf of another, and a client that skipped the check would happily
 send the user, the Authorization Code, and its `client secret` to whatever
 `token_endpoint` that document listed.
-
-:::
 
 ## The Authorization Endpoint
 
@@ -572,8 +568,8 @@ registration. Before it issues anything, the Authorization Server checks
 all of the following:
 
 - The `client ID` and `client secret` are valid.
-- The `code` matches an Authorization Code it saved earlier, and that code
-  has not expired or already been used.
+- The Authorization Code(`code`) matches an Authorization Code it saved
+  earlier, and that code has not expired or already been used.
 - The code was issued **to this same client**. A code handed to Strava
   cannot be redeemed by any other client, even a correctly authenticated
   one.
@@ -597,29 +593,50 @@ Content-type: application/json
 }
 ```
 
-Two things in that response are worth pausing on. The `scope` is echoed
-back because the Authorization Server is allowed to grant _less_ than the
-client asked for. If the user unticked a permission on the consent screen,
-this is where the client finds out. And `expires_in` is only an hour, which
-brings us to the `refresh_token` sitting next to it.
+The `scope` is echoed back because the Authorization Server is allowed to
+grant _less_ than the client asked for. If the user unticked a permission
+on the consent screen, this is where the client finds out.
+
+Notice how `expires_in` is only an hour. It is best practice to give Access
+Tokens short lifespans.
+
+:::strongme
+
+We are nearly there! The final part of the response we need to talk about
+is the `refresh_token`.
+
+:::
 
 ### Issuing Refresh Tokens
 
 We met the Refresh Token from the client's side in
-[Part 2](/posts/oauth-client#refresh-token). The client's job there was
-simple: when the Access Token dies, send the Refresh Token to `/token` and
-get a new one. Let's look at what the Authorization Server has to do to
-make that safe.
+[Part 2](/posts/oauth-client#refresh-token). When the Access Token dies,
+the client would send the Refresh Token to the `/token` endpoint from the
+Authorization Server and get a new one. Let's look at this in the
+perspective of the Authorization Server now.
 
-An Access Token is deliberately short-lived. Part 3 showed the protected
-resource checking `exp` on
+An Access Token is deliberately short-lived. This is why the protected
+resource checks the `exp` on
 [every single request](/posts/oauth-protected-resource#token-expirationrevocation),
-and an hour is a typical lifetime. Without Refresh Tokens the user would be
-bounced back to the consent screen every hour, which nobody would tolerate.
-The Refresh Token is the Authorization Server's record that this user
-already consented, so it can mint new Access Tokens without asking again.
+and an hour is a typical lifetime of an Access Token. Without Refresh
+Tokens the user would be bounced back to the consent screen every hour,
+which nobody would tolerate. The Refresh Token is the Authorization
+Server's record that this user already consented, so it can mint new Access
+Tokens without asking again.
 
-Here is the client coming back an hour later:
+:::note
+
+The principle of the user authorizing the client only once, for the client
+to use the delegated authorization multiple times without bothering the
+user on every request is known as
+[TOFU](https://en.wikipedia.org/wiki/Trust_on_first_use) (Trust On First
+Use)
+
+:::
+
+Here is the client coming back to the Authorization Server an hour later,
+when the Access Token expires, and using a refresh token to request for a
+new Access Token:
 
 ```bash
 POST /token HTTP/1.1
@@ -644,7 +661,10 @@ ran on the Authorization Code:
   disconnected Strava from their Facebook account, the Refresh Token dies
   with it.
 
-If all of that holds, the Authorization Server issues a fresh Access Token:
+The Authorization Server issues a fresh Access Token if all of the above is
+is still true.
+
+Here is an example successful response from the Authorization server:
 
 ```bash
 HTTP/1.1 200 OK
@@ -666,8 +686,10 @@ new one.
 
 :::confusedDuck
 
-Why bother rotating it? The client just authenticated with its client
-secret, so the Authorization Server already knows who it is.
+Why bother rotating the Refresh Token? The client just authenticated with
+its client secret, so the Authorization Server already knows who it is.
+Also the Refresh Token most probably is not expired since it has a long
+lifespan compared to the Access Token.
 
 :::
 
@@ -675,19 +697,22 @@ secret, so the Authorization Server already knows who it is.
 
 True for a confidential client like Strava. But a public client has no
 secret to authenticate with, so a stolen Refresh Token would otherwise be
-usable forever by whoever stole it. Rotation is what turns that into
-something the Authorization Server can detect.
+usable for a very long time by whoever stole it. The Authorization Server
+can detect a stolen refresh token with a Rotation.
 
 :::
 
 The detection works exactly like the Authorization Code replay we described
 earlier. If a Refresh Token that has already been rotated away shows up
-again, there are only two possible explanations: the client failed to store
-the new one, or somebody stole the old one. The Authorization Server cannot
-tell which, so it assumes the worst and revokes the entire token family,
-every Access Token and Refresh Token descended from that original consent.
-The legitimate client is forced back through the full flow, and the thief
-gets nothing.
+again, there are only two possible explanations:
+
+1. The client failed to store the new one
+2. Somebody stole the old one.
+
+The Authorization Server cannot tell which, so it assumes the worst and
+revokes the entire token family, every Access Token and Refresh Token
+descended from that original consent. The legitimate client is forced back
+through the full flow, and the hacker gets nothing.
 
 :::note
 
@@ -696,6 +721,14 @@ between the client and the Authorization Server, and it is never sent to
 the protected resource. Facebook has no idea Refresh Tokens exist.
 
 :::
+
+:::warning
+
+Refresh Tokens are never used on the protected resource!
+
+:::
+
+### Token Revocation
 
 Because Refresh Tokens can outlive the browser session by weeks, the
 Authorization Server also needs a way to throw them away on demand. That is
