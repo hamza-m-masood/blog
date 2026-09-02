@@ -92,11 +92,17 @@ This results in the Authorization Server having a list of pre-approved
 clients that can authenticate and have user authorizations delegated to
 them.
 
-Typically during static client registration, an Authorization Server asks
-an administrator for a handful of details before it will register a client.
-Those details are what let the client authenticate itself, request an
-Authorization Code, and exchange that code for an Access Token, which is
-how the user's authorizations end up delegated to the client:
+Typically an administrator is required to manually register clients to the
+Authorization Server before any flow can be started.
+
+An Authorization Server asks an administrator for a handful of details
+before it will register a client. Those details are what let the client
+authenticate itself, request an Authorization Code, and exchange that code
+for an Access Token, which is how the user's authorizations end up
+delegated to the client
+
+Here are the details that the Authorization Server asks an administrator to
+statically register a client:
 
 1. **Client type**: As discussed, a client can be
    [confidential or public](/posts/oauth-client#client-types).
@@ -172,8 +178,7 @@ registered once.
 :::confusedDuck
 
 Strava has millions of users. Why is Strava registered only once to the
-Authorization Server so it can connect to Facebook? Shouldn't Strava be
-registered for each user account?
+Authorization Server? Shouldn't Strava be registered for each user account?
 
 :::
 
@@ -201,25 +206,28 @@ registered to the Authorization Server.
 
 Static client registration does not work well in every case. Let's take
 Email as another example. A mail provider's Authorization Server has to let
-outside applications access a user's inbox on their behalf, and unlike
-Strava, there's no single client app doing that. A user might connect with
-Thunderbird, Apple Mail, Outlook, or any of dozens of other email clients,
-with new ones showing up all the time.
+outside applications access a user's inbox on user's behalf, and unlike
+Strava, there's no single client app doing that. There could be multiple
+apps that would want access to the user's mailbox. A user might connect
+with Thunderbird, Apple Mail, Outlook, or any of dozens of other email
+clients, with new ones showing up all the time.
 
-Nobody wants an administrator manually pre-registering every email client
-that might ever try to connect. That doesn't scale.
+Nobody wants an administrator manually registering every email client that
+might ever try to connect. That doesn't scale.
 
 The solution to the above scalability problem is Dynamic Client
 Registration: A way for clients to dynamically register themselves on an
-Authorization Server that accepts this protocol.
+Authorization Server that accepts this protocol. Without the need for an
+administrator to login to the Authorization Server and manually enter every
+client.
 
 Dynamic Client Registration is done by the Authorization Server exposing a
 registration endpoint, conventionally called `/register`. The actual path
-is not fixed by the spec: a client discovers it from the Authorization
+is not fixed by the spec. A client discovers it from the Authorization
 Server's metadata document, published under the `registration_endpoint`
-field. Instead of an administrator filling out a form on the Authorization
-Server to statically register a client, the client itself sends a request
-to this endpoint describing what it needs.
+field. The client itself sends a request to this endpoint describing what
+it needs, instead of an administrator filling out a form on the
+Authorization Server to statically register a client,
 
 :::confusedDuck
 
@@ -257,9 +265,13 @@ backend servers rather than reading it directly on the user's device, so it
 registers as a confidential client. Note the `token_endpoint_auth_method`
 of `client_secret_basic`, which tells the Authorization Server that this
 client intends to authenticate itself with a secret, in the same
-`Authorization: Basic` header we saw in the previous post. The
-Authorization Server responds with a `client ID` and, since this is a
-confidential client, a `client secret`:
+`Authorization: Basic` header the client used when
+[requesting an Access Token](/posts/oauth-client#client-requests-access-token).
+The Authorization Server responds with a `client ID` and, since this is a
+confidential client, a `client secret`.
+
+Here is a successful response from the Authorization Server following a
+dynamic client registration request:
 
 ```bash
 HTTP/1.1 201 Created
@@ -291,7 +303,7 @@ Server, for example, to request an Access Token.
 :::joyfulDuck
 
 I now have a deep understanding of how clients are registered on the
-Authorization Server!!
+Authorization Server!!!
 
 :::
 
@@ -304,9 +316,9 @@ Server does after client registration.
 
 ## Authorization Server Metadata
 
-By now we have named a fair number of endpoints across this series:
-`/authorize`, `/token`, `/register`, and the `/introspect` endpoint from
-the
+By now we have named a fair number of endpoints across this entire blog
+series: `/authorize`, `/token`, `/register`, and the `/introspect` endpoint
+from the
 [Protected Resource post](/posts/oauth-protected-resource#the-introspection-endpoint).
 None of those paths are fixed by the spec. They are conventions, and every
 Authorization Server is free to pick its own.
@@ -348,26 +360,18 @@ with one value, the issuer URL, and it can discover the rest.
 
 :::note
 
-The `issuer` value must match the URL the document was fetched from. A
-client that skips this check can be handed a metadata document from a
-server it did not intend to talk to, and be pointed at an attacker's token
-endpoint. Always compare the two.
+The client builds the metadata URL out of the issuer it was given, so a
+client configured with `https://auth-server` fetches
+`https://auth-server/.well-known/oauth-authorization-server`. When the
+response comes back, its `issuer` field must be identical to the
+`https://auth-server` the client started with.
 
-:::
-
-:::confusedDuck
-
-I have seen `/.well-known/openid-configuration` before. Is that the same
-thing?
-
-:::
-
-:::me
-
-Almost. That one is the OpenID Connect version of this document, and it
-carries some extra identity-related fields. Most real Authorization Servers
-serve both paths with largely the same content. We will get into OIDC in
-its own blog post.
+This comparison is vital because every endpoint inside the response is an
+absolute URL that can point anywhere. A document served from `auth-server`
+that claimed `"issuer": "https://evil-server"` would be one server speaking
+on behalf of another, and a client that skipped the check would happily
+send the user, the Authorization Code, and its `client secret` to whatever
+`token_endpoint` that document listed.
 
 :::
 
