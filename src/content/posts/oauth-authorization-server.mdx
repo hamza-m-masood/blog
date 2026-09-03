@@ -998,24 +998,6 @@ exposed to the internet. All the attacker can do is send the
 `Authorization code` without a verifier, which the Authorization Server
 rejects.
 
-:::confusedDuck
-
-So PKCE is the thing public clients use _instead of_ a client secret?
-
-:::
-
-:::me
-
-That is how it started, but it is not how it is used today. Current OAuth
-security guidance, and OAuth 2.1, tell Authorization Servers to require
-PKCE from **every** client using the Authorization Code grant, confidential
-ones included. A client secret proves _which application_ is talking. PKCE
-proves that the application redeeming the code is the same one that started
-the flow. Those are different guarantees, and a confidential client wants
-both.
-
-:::
-
 ## Error Responses
 
 Everything we have walked through so far has been the happy path. In
