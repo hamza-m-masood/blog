@@ -754,7 +754,7 @@ Hooray! We did it!!!
 :::me{align="right"}
 
 Let's now cover one security concept that becomes extremely relevant for
-public clients called PKCE (pronounced pixi).
+public clients called PKCE (pronounced pixy).
 
 :::
 
@@ -778,28 +778,40 @@ Let's go!
 
 ## PKCE
 
-Way back in the client registration section, our duck asked an excellent
-question: if a public client gets no client secret, what stops somebody
-else from using its `client ID`? It is time to answer that.
+Since the start of the blog series we assumed that our OAuth client,
+Strava, is a private client. What if it were a public client? If Strava
+just has a client ID with no client secret, how does Strava successfully
+authenticate to the Authorization Server and grab and Access Token?
 
-Consider Strava's mobile app instead of its website. A mobile app cannot
-keep a secret, because anybody can pull the app apart and read whatever is
-compiled into it. So it registers as a public client, and its redirect URI
-is a custom scheme the operating system routes back to the app, something
-like `strava://callback`.
+Stricly speaking, the public client is still able to grab an Access Token
+from the Authorization Server without authentication. The OAuth reference
+allows for that.
 
-This is a **separate registration** from the web app we set up earlier. The
-website is a confidential client with a secret; the mobile app is a public
-client with none, so it gets its own client ID. We will call it
-`strava-mobile`. One application can easily have several registrations, one
-per deployment that needs different credentials.
+Even with the Authorization Server accepting unauthenticated requests from
+the client to get an Access Token, there is still some level of safety.
 
-Here is the problem. On some platforms nothing stops a second, malicious
-app from claiming that same `strava://` scheme. If it does, the operating
-system may hand _it_ the redirect instead, Authorization Code and all. The
-attacker now holds a valid code for a client that has no secret, so
-authenticating at the token endpoint costs them nothing. They exchange the
-code and walk away with the user's Access Token.
+:::me
+
+Pause! Before reading ahead, can you think about what safety primitives are
+built in to the Authorization Server to stop an attacker even when a public
+client is used? I'll give you a hint: we already discussed it in this blog!
+
+:::
+
+Answer:
+
+- The redirect URIs for a specific client (even public clients) are already
+  registered. So even if the attacker were to send a request through an
+  attacker client, it would fail since the redirect URIs of the attacker
+  client is not register in the Authorization Server.
+- You still need an actual user to authenticate on the Authorization Server
+  in order to delegate authorizations to the client. The attacker does not
+  know the user's username and password.
+- Bonus answer: We discussed previously about using the
+  [state](/posts/oauth-client#the-state-parameter) parameter to guard
+  against CSRF attacks. This would also help the public client.
+
+The solution is PKCE (Proof Keepr code Exchange)!
 
 This is called an authorization code interception attack, and the fix is
 **PKCE**, Proof Key for Code Exchange, defined in
