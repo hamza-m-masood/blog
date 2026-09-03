@@ -792,13 +792,14 @@ the client to get an Access Token, there is still some level of safety.
 
 :::me
 
-Pause! Before reading ahead, can you think about what safety primitives are
-built in to the Authorization Server to stop an attacker even when a public
-client is used? I'll give you a hint: we already discussed it in this blog!
+Pause! Before reading ahead, can you think about what safety primitives
+that are built into the Authorization Server to stop an attacker even when
+a public client is used? I'll give you a hint: we already discussed it in
+this blog!
 
 :::
 
-Answer:
+:::spoiler[Click to reveal the answer]
 
 - The redirect URIs for a specific client (even public clients) are already
   registered. So even if the attacker were to send a request through an
@@ -811,29 +812,158 @@ Answer:
   [state](/posts/oauth-client#the-state-parameter) parameter to guard
   against CSRF attacks. This would also help the public client.
 
-The solution is PKCE (Proof Keepr code Exchange)!
+:::
 
-This is called an authorization code interception attack, and the fix is
-**PKCE**, Proof Key for Code Exchange, defined in
-[RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636) and pronounced
-"pixy".
+Even though safety primitives exist for public clients. An attacker can
+still The solution is PKCE (Proof Keeper code Exchange)!
 
-The idea is that if the client cannot prove who it is with a long-lived
-secret, it can instead invent a brand new secret for every single flow, and
-prove it knows that secret when it comes to redeem the code.
+Let's walk through a concrete example where public clients can be
+compromised if PKCE is not used:
 
-1. Before redirecting the user, the client generates a large random string
-   called the `code_verifier`, and keeps it to itself.
-2. It hashes that value with SHA-256 and base64url-encodes the result. That
-   is the `code_challenge`.
-3. It sends only the **challenge** to `/authorize`. The verifier never
-   touches the browser.
-4. The Authorization Server stores the challenge next to the Authorization
-   Code it issues.
-5. When the client comes to `/token`, it sends the **verifier**. The
-   Authorization Server hashes it and compares it to the stored challenge.
+### Authorization Code Interception
 
-The `/authorize` request picks up two new parameters:
+:::note
+
+For the example below, we will assume that Strava is as a public client. We
+will also assume that the user's operating system is compromised and routes
+incoming traffic to malicious processes.
+
+:::
+
+1. The user accesses Strava and gets redirected to the Authorization
+   Server.
+2. The user logs in to the Authorization Server.
+3. The user gets redirected back to Strava but Strava sits on a spinner
+   continually stuck at prelogin screen since the malicious operating
+   system that the user has took out the Authorization Code. Strava never
+   received it.
+4. The user simply refreshes Strava to start the OAuth flow again. But now
+   there is a legitimate Authorization Code sitting in the user's operating
+   system for any malicious program to use!
+5. The malicious program in the operating system sends a POST request to
+   the Authorization Server to get an Access Token.
+
+:::facepalmDuck{align="left"}
+
+I see the problem. The attacker can send a simple POST request now since
+Strava is seen as a public client and does not have a client secret. There
+is no authentication required.
+
+:::
+
+:::me{align="right"}
+
+Private clients are also in trouble if PKCE is not used.
+
+:::
+
+:::eyesDuck{align="left"}
+
+private clients are immune to Authorization code injection attack. What
+could be an attack that a private client could be vulnerable to without
+PKCE?
+
+:::
+
+:::me{align="right"}
+
+Let's walk through another example attack for private clients where PKCE is
+not involved.
+
+:::
+
+### Authorization Code Injection
+
+1. The Attacker somehow obtains a code issued to the victim for this
+   client, just as in the previous example.
+2. Attacker, in their own browser, starts a normal login at the client.
+   They get a legitimate authorization request and their own state.
+3. At the redirect step, instead of letting their own code come back, they
+   replace the code parameter with the victim's, keeping their own state
+   intact.
+4. The client sees a valid state for its own session, so it proceeds. It
+   POSTs to the token endpoint with its client_secret and the victim's
+   code.
+5. The AS validates the secret (correct), validates the code (correct,
+   issued to this client), and returns the victim's tokens.
+6. The client establishes a session, in the attacker's browser, for the
+   victim's account.
+
+### PKCE flow
+
+The solution for an authorization code interception attack, and an
+authorization code injection attack is **PKCE** (Proof Key for Code
+Exchange) defined in
+[RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636) ".
+
+:::magnifyingglassme
+
+Enough examples! Let's get into how PKCE works.
+
+:::
+
+If a public client cannot authenticate, and a private client cannot prove
+who it is with a long-lived secret, then each client can instead invent a
+brand new secret for every single flow, and prove it knows the generated
+secret when it recieves the Authorization code.
+
+:::me
+
+Let me repeast the above paragraph again for those who didn't undersatnd:
+
+:::
+
+The client (whether public or private) would generate a random string. The
+client will then be tasked to prove it knows that randomly generated string
+when it receives the Authorization Code.
+
+Let's see this in action:
+
+1. The user accesses the client.
+1. Before redirecting the user to the Authorization Server, the client
+   generates a large random string called the `code_verifier`, and keeps it
+   to itself.
+1. It hashes that value with SHA-256 and base64-encodes the result. That is
+   the `code_challenge`.
+1. The user is redirected to the Authorization Server and the client sends
+   only the `code_challenge` in the same HTTP request. The `code_verifier`
+   remains in the client and **never touches the browser**.
+1. The user authenticates with the Authorization Server and approves the
+   client.
+1. The Authorization Server stores the `code_challenge` next to the
+   Authorization Code it generates.
+1. The Authorization Server Redirects the user back to the client with the
+   same `code_challenge` and newly generated Authorization Code.
+1. The client takes the Authorization code and directly requests an Access
+   Token. This time sending the `code_verifier`.
+1. The Authorization Server hashes the `code_verifier` with SHA-256 and
+   base64-encodes it, just as the client initially did in step 3. Then
+   compares the `code_verifier` to the stored `code_challenge`. If there is
+   a match then it will generate an Access Token and respond back to the
+   client with the Access Token.
+
+:::pointingDuck
+
+The `code_challenge` and the `code_verifier` are the same random
+characters. It's just that the `code_challenge` is a hashed version of the
+`code_verifier` right?
+
+:::
+
+:::strongme{align="right"}
+
+Exactly!
+
+:::
+
+:::me{align="right"}
+
+Let's go more in-depth and look at the HTTP requests:
+
+:::
+
+In step 4 above, the `/authorize` endpoint in the Authorization Server
+picks up two new parameters:
 
 ```bash
 GET /authorize?response_type=code&scope=post&client_id=strava-mobile&redirect_uri=strava%3A%2F%2Fcallback&state=af0ifjsldkj&code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&code_challenge_method=S256 HTTP/1.1
@@ -842,7 +972,7 @@ Host: auth-server
 
 The Authorization Server files that `code_challenge` away with the code.
 When the client returns to the token endpoint, it proves itself by handing
-over the original value:
+over the original value, as described in step 9:
 
 ```bash
 POST /token HTTP/1.1
@@ -854,35 +984,19 @@ grant_type=authorization_code&redirect_uri=strava%3A%2F%2Fcallback&client_id=str
 
 Note that there is no `Authorization: Basic` header here, because a public
 client has nothing to put in it. The `code_verifier` is doing that job
-instead. The Authorization Server computes
-`BASE64URL(SHA256(code_verifier))`, compares it against the stored
-`code_challenge`, and only issues a token if they match.
+instead.
 
-Now replay the attack. The malicious app intercepts the redirect and gets
-the Authorization Code, exactly as before. But the code alone is useless.
-To redeem it the attacker also needs the `code_verifier`, and that value
-never left the legitimate app. It was never in a URL, never in the browser,
-and never in a redirect the attacker could intercept. All the attacker can
-do is send the code without a verifier, which the Authorization Server
+The Authorization Server computes `BASE64URL(SHA256(code_verifier))`,
+compares it against the stored `code_challenge`, and only issues a token if
+they match.
+
+Now if we go through our attack examples again with PKCE, exactly as
+before. We will notice that the Authorization Code by itself is useless. To
+redeem it the attacker also needs the `code_verifier`. The attacker can
+never get the `code_verifier` because it remained in the app and never
+exposed to the internet. All the attacker can do is send the
+`Authorization code` without a verifier, which the Authorization Server
 rejects.
-
-:::note
-
-The Authorization Server has to fail closed here. If it stored a
-`code_challenge` at `/authorize`, it **must** reject a token request that
-arrives with no `code_verifier`. An Authorization Server that quietly
-ignores the missing verifier gives an attacker a trivial way to downgrade
-the protection and undo the whole mechanism.
-
-:::
-
-RFC 7636 also defines a `plain` method, where the challenge is just the
-verifier sent as-is with no hashing. Do not use it. It only exists for
-clients that genuinely cannot compute a SHA-256 hash, and it offers no
-protection against an attacker who can read the `/authorize` request. Real
-Authorization Servers advertise
-`"code_challenge_methods_supported": ["S256"]` in their metadata and refuse
-the rest.
 
 :::confusedDuck
 

@@ -355,6 +355,46 @@ article img {
     @apply h-0.5 my-16 bg-separator border-none rounded-xl;
   }
 
+  details.spoiler {
+    @apply bg-foreground/5 border-3 border-accent/10 rounded-xl px-7 md:px-6 py-5 my-6.5;
+
+    summary.spoiler-summary {
+      @apply relative list-none pl-6 font-semibold cursor-pointer marker:content-[''] select-none;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+
+      &:before {
+        @apply absolute left-0 text-accent font-semibold;
+        content: '>';
+      }
+
+      &:hover {
+        @apply text-accent;
+      }
+    }
+
+    &[open] summary.spoiler-summary:before {
+      @apply inline-block rotate-90;
+    }
+
+    .spoiler-content {
+      & > *:not(div.expressive-code, img, figure, video, hr),
+      figcaption {
+        @apply md:mx-2;
+      }
+
+      & > :first-child {
+        @apply mt-4;
+      }
+
+      & > :last-child {
+        @apply mb-0;
+      }
+    }
+  }
+
   blockquote,
   aside {
     @apply px-7 md:px-6 rounded-xl py-6;
