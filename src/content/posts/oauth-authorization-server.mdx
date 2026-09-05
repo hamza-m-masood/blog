@@ -436,12 +436,11 @@ separate component from the protected resource?
 
 :::me
 
-It is, and in the protocol they stay separate: one issues tokens, the other
-validates them. But they are roles, not necessarily different companies. In
-the real world one organisation usually runs both, so the consent screen
-wears Facebook's branding even though it is the Authorization Server
-talking. That is also why you see a Facebook login here rather than some
-third-party sign-in page.
+It is, and in the protocol they stay separate. They are roles, not
+necessarily different companies. In the real world one organisation usually
+runs both, so the consent screen wears Facebook's branding even though it
+is the Authorization Server talking. That is also why you see a Facebook
+login here rather than some third-party sign-in page.
 
 :::
 
@@ -998,124 +997,36 @@ exposed to the internet. All the attacker can do is send the
 `Authorization code` without a verifier, which the Authorization Server
 rejects.
 
-## Error Responses
+## Conclusion
 
-Everything we have walked through so far has been the happy path. In
-practice an Authorization Server spends a lot of its time saying no, and
-_where_ it says no matters just as much as _what_ it says.
+:::me
 
-### Errors From The Authorization Endpoint
+That's it! Well done for getting this far. We walked through the entire
+OAuth flow from the Authorization Server's perspective :rocket:
 
-We already covered the most important rule when the user first arrives at
-`/authorize`. If the `client_id` is unknown, or the `redirect_uri` does not
-exactly match a registered one, the error is rendered on the Authorization
-Server's own page. It is never redirected, because a redirect to an
-unverified URI is exactly the open redirector an attacker wants.
+:::
 
-For every other failure the redirect URI has already been validated, so the
-error can safely go back to the client the same way a code would. The most
-common one is the user simply saying no on the consent screen:
+The Authorization Server is where nearly all of OAuth's complexity lives,
+and that is by design.
 
-```bash
-HTTP/1.1 302 Found
-Location: https://strava.com/callback?error=access_denied&error_description=The%20user%20denied%20the%20request&state=af0ifjsldkj
-```
+It registers clients, publishes its own metadata, authenticates users,
+hands out Auhtorization Codes, Access Tokens and Refresh Tokens, and more!
 
-The `state` parameter is echoed back on errors too. The client still has to
-match it against its session before acting on the response, otherwise an
-attacker could inject a fake failure into an unrelated flow.
+Every one of those steps paves the way for clients and private resources to
+be as simple as possible. Since there are more clients and private
+resources than Authorization Servers.
 
-These are the codes an Authorization Server returns from `/authorize`:
+:::proudDuck
 
-| Error                       | Meaning                                                              |
-| --------------------------- | -------------------------------------------------------------------- |
-| `invalid_request`           | A parameter is missing, repeated, or malformed.                      |
-| `unauthorized_client`       | This client is not allowed to use this grant type.                   |
-| `access_denied`             | The user said no, or the Authorization Server refused the request.   |
-| `unsupported_response_type` | The Authorization Server does not support this `response_type`.      |
-| `invalid_scope`             | A requested scope is unknown, or outside what the client registered. |
-| `server_error`              | Something broke internally. A 500 cannot be sent through a redirect. |
-| `temporarily_unavailable`   | The Authorization Server is overloaded or down for maintenance.      |
-
-### Errors From The Token Endpoint
-
-The token endpoint is a direct back channel call, so there is no browser
-and no redirect involved. Errors come back as a normal HTTP response with a
-JSON body:
-
-```bash
-HTTP/1.1 400 Bad Request
-Content-type: application/json
-Cache-Control: no-store
-
-{
-  "error": "invalid_grant",
-  "error_description": "Authorization code has already been used"
-}
-```
-
-| Error                    | Meaning                                                      |
-| ------------------------ | ------------------------------------------------------------ |
-| `invalid_request`        | A parameter is missing, repeated, or malformed.              |
-| `invalid_client`         | Client authentication failed. Returned with a `401`.         |
-| `invalid_grant`          | The code or Refresh Token is not usable. See below.          |
-| `unauthorized_client`    | This client is not allowed to use this grant type.           |
-| `unsupported_grant_type` | The Authorization Server does not support this `grant_type`. |
-| `invalid_scope`          | The requested scope exceeds the scope of the original grant. |
-
-:::confusedDuck
-
-`invalid_grant` seems to cover an awful lot of different situations.
+I should go back up tot he animation at the start of the blog and see if I
+now fully understand it.
 
 :::
 
 :::me
 
-It does, and that is deliberate! Look back at the checks the token endpoint
-runs. Expired code, already-used code, code issued to a different client,
-mismatched `redirect_uri`, failed PKCE verifier, revoked Refresh Token.
-Every one of those comes back as the same flat `invalid_grant`.
+Good idea!
 
 :::
-
-That vagueness is a security feature. If the Authorization Server
-distinguished "this code expired" from "this code belongs to another
-client", it would be answering questions for an attacker who is guessing at
-codes. One opaque answer tells them nothing. The specific reason belongs in
-the Authorization Server's logs, not in the response.
-
-:::note
-
-Do not confuse these with the errors from
-[Part 3](/posts/oauth-protected-resource#sending-the-access-token). An
-`insufficient_scope` in a `WWW-Authenticate: Bearer` header comes from the
-**protected resource** rejecting a token it was handed. The errors here
-come from the **Authorization Server** refusing to issue one in the first
-place. Different component, different stage, different response format.
-
-:::
-
-## Conclusion
-
-The Authorization Server is where nearly all of OAuth's complexity lives,
-and that is by design. It knows every client through registration, whether
-that registration was filled in by an administrator or requested by the
-client itself through `/register`. It publishes its own metadata so clients
-never have to guess at an endpoint. It authenticates the user, presents the
-consent screen, and turns the user's approval into an Authorization Code.
-It trades that code for an Access Token, but only for the client the code
-was issued to, and only if the PKCE verifier checks out. It hands back a
-Refresh Token so the user is not dragged through consent every hour, and
-rotates it so a stolen one gets noticed. When any of that fails, it says so
-in a way that helps an honest client and tells an attacker nothing.
-
-Every one of those steps is a check that the client and the protected
-resource no longer have to make themselves. That is what makes the
-Authorization Server the most trusted piece of the whole dance, and the
-most dangerous one to get wrong.
-
-Now is a good time to scroll back up to
-[the animation](#the-whole-flow-at-a-glance) and play it one more time.
-Every term in those twenty steps should mean something to you now.
 
 This ends our deep-dive into the Authorization Server.
