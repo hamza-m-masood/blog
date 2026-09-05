@@ -1,6 +1,6 @@
 ---
 title: "Part 4 - The OAuth Authorization Server"
-published: 2026-08-19
+published: 2026-09-07
 draft: false
 description:
   "How the Authorization Server registers clients, issues Authorization
@@ -29,8 +29,8 @@ The Authorization Server is responsible for the following:
   from the user to the client.
 - Dispensing Authorization Codes, Access Tokens and Refresh Tokens to
   clients.
-- Introspecting and revoking Access Tokens on behalf of its protected
-  resources.
+- Introspecting tokens on behalf of its protected resources, and revoking
+  them on behalf of clients and users.
 - Publishing its own configuration so clients can find all of the above.
 
 ## Our Example
@@ -69,9 +69,9 @@ This animation is too confusing!
 
 :::me
 
-Don't worry about it yet! Every one of those twenty steps gets its own
-section below, in roughly the order they happen. Come back and replay the
-animation once you reach the conclusion and the whole flow should make
+Don't worry about it yet! Nearly every one of those twenty steps gets its
+own section below, in roughly the order they happen. Come back and replay
+the animation once you reach the conclusion and the whole flow should make
 sense. :muscle:
 
 :::
@@ -144,7 +144,6 @@ statically register a client:
    [Implicit Grant Type](/posts/introduction-to-oauth#delegating-access)
    and the
    [Authorization Code Grant Type](/posts/introduction-to-oauth#enhancing-security).
-   We will go through more grant types in a future blog post!
 4. **Scopes**: The [scopes](/posts/oauth-protected-resource#scope) that the
    client is allowed to ask for. The Authorization Server will refuse any
    request for a scope outside this list, and it uses this list to tell the
@@ -281,6 +280,7 @@ dynamic client registration request:
 ```bash
 HTTP/1.1 201 Created
 Content-Type: application/json
+Cache-Control: no-store
 
 {
   "client_id": "5b6f2a91-8c3d-4e7f-a1b2-9d0e6f4c8a72",
@@ -367,11 +367,12 @@ reading the previous blog posts.
 
 Everything a client needs is in there. Where to send the user, where to
 exchange the code, where to register itself, which scopes exist, and which
-grant types it is allowed to ask for. A client only has to be configured
-with one value, **the issuer URL**, and it can discover the rest.
+grant types the server supports.
 
-The client builds the metadata URL out of the issuer it was given, so a
-client configured with issuer `https://auth-server` fetches
+A client only has to be configured with one value, **the issuer URL**, and
+it can discover the rest. The client builds the metadata URL out of the
+issuer it was given, so a client configured with issuer
+`https://auth-server` fetches
 `https://auth-server/.well-known/oauth-authorization-server`. When the
 response comes back, the response's `issuer` field must be identical to the
 `issuer` the client started with: `https://auth-server`.
@@ -401,8 +402,9 @@ incoming request against what was stored during client registration:
 - Is the `client_id` a client it knows about?
 - Does the `redirect_uri` exactly match one of the redirect URIs registered
   for that client?
-- Is the requested `response_type` (`code`) one of the grant types this
-  client is allowed to use?
+- Is the requested `response_type` (`code`) one that this client
+  registered, and does it correspond to a grant type the client is allowed
+  to use?
 - Are the requested scopes a subset of the scopes the client registered?
 
 The `redirect_uri` check has to happen first, and it has to be an exact
@@ -410,7 +412,10 @@ string match. If the `client_id` is unknown or the `redirect_uri` doesn't
 match, the Authorization Server must _not_ redirect the error back: doing
 so would turn it into an open redirector for an attacker. It has to render
 the error on its own page instead. For every other failure, the error is
-returned to the registered redirect URI as an `error` query parameter.
+returned to the registered redirect URI as an `error` query parameter,
+along with the `state` the client sent in. The client needs that `state`
+back to tie the failure to the session that started it, exactly as it would
+on success.
 
 Once the request is valid, the user is prompted to authenticate. Although
 there are stages in OAuth 2.0 that require the user to be authenticated,
@@ -515,10 +520,14 @@ belongs to this one flow only:
   "scope": "post",
   "redirect_uri": "https://strava.com/callback",
   "code_challenge": "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+  "code_challenge_method": "S256",
   "expires_at": 1755562143,
   "used": false
 }
 ```
+
+The `code_challenge` and `code_challenge_method` in that record belong to
+PKCE, which we cover [further down](#pkce). Ignore them for now.
 
 We will discuss the token endpoint next, where the client will request an
 Access Token. Every check the token endpoint is about to run is a
@@ -575,6 +584,9 @@ all of the following:
 - The `redirect_uri` matches the one used in the original `/authorize`
   request.
 
+There is one more check that belongs in that list. The check for PKCE. We
+get to it [further down](#pkce).
+
 If everything checks out, the Authorization Server marks the code as used
 and responds with an Access Token:
 
@@ -582,6 +594,7 @@ and responds with an Access Token:
 HTTP/1.1 200 OK
 Date: Fri, 31 Jul 2026 21:19:03 GMT
 Content-type: application/json
+Cache-Control: no-store
 
 {
   "access_token": "987tghjkiu6trfghjuytrghj",
@@ -591,6 +604,10 @@ Content-type: application/json
   "scope": "post"
 }
 ```
+
+`Cache-Control: no-store` is required on every token response. Without it a
+browser sitting in the network path is free to keep a copy of the Access
+Token on disk.
 
 The `scope` is echoed back because the Authorization Server is allowed to
 grant _less_ than the client asked for. If the user unticked a permission
@@ -627,7 +644,7 @@ Tokens without asking again.
 
 The principle of the user authorizing the client only once, for the client
 to use the delegated authorization multiple times without bothering the
-user on every request is known as
+user on every request, is called
 [TOFU](https://en.wikipedia.org/wiki/Trust_on_first_use) (Trust On First
 Use).
 
@@ -668,6 +685,7 @@ Here is an example successful response from the Authorization Server:
 ```bash
 HTTP/1.1 200 OK
 Content-type: application/json
+Cache-Control: no-store
 
 {
   "access_token": "IqTnLQKcSY62klAuNTVevPdyEnbY82PB",
@@ -730,11 +748,11 @@ Refresh Tokens are never used on the protected resource!
 ### Token Revocation
 
 Because Refresh Tokens can outlive the browser session by weeks, the
-Authorization Server also needs a way to throw them away on demand. That is
-what the `revocation_endpoint` in the metadata document is for. When a user
-clicks "disconnect Strava" in their Facebook settings, the Authorization
-Server revokes the grant, and the next introspection call from the
-protected resource comes back with
+Authorization Server also needs a way to throw them away on demand. The
+`revocation_endpoint` in the metadata document is how a **client** does
+that, handing back a token it no longer needs, for example when the user
+logs out of the client. The Access Token dies, and the next introspection
+call from the protected resource comes back with
 [`active: false`](/posts/oauth-protected-resource#token-introspection).
 
 :::me{align="right"}
@@ -801,9 +819,10 @@ client is used? I'll give you a hint: we already discussed it in this blog!
 :::spoiler[Click to reveal the answer]
 
 - The redirect URIs for a specific client (even public clients) are already
-  registered. So even if the attacker were to send a request through an
-  attacker client, it would fail since the redirect URIs of the attacker
-  client are not registered in the Authorization Server.
+  registered. A `client ID` is public, so nothing stops an attacker from
+  starting a flow with Strava's, but the Authorization Server will only
+  ever send the Authorization Code to a redirect URI Strava registered. The
+  attacker cannot point it at themselves.
 - You still need an actual user to authenticate on the Authorization Server
   in order to delegate authorizations to the client. The attacker does not
   know the user's username and password.
@@ -821,25 +840,45 @@ compromised if PKCE is not used:
 
 ### Authorization Code Interception
 
-:::note
+Let's revise a few terms, so the example is clear:
 
-For the example below, we will assume that Strava is a public client. We
-will also assume that the user's operating system is compromised and routes
-incoming traffic to malicious processes.
+- **Redirect URI**: the full address the Authorization Server sends the
+  user back to once they have approved, with the Authorization Code
+  attached. We have been using `https://strava.com/callback` all post.
 
-:::
+- **Private-use URI Scheme**: a private-use scheme is what a single app in
+  your operating system would claim for itself, so that the operating
+  system launches that app instead. Unlike `https` which is a public
+  scheme. For this example the scheme used for private use will be
+  `com.strava.app:/callback`. This does not need to be registered to the
+  Authorization Server since it is only meant to help the operating system
+  route calls to specific apps.
+
+- **Callback**: this is the path at the end, `/callback`. The name is a
+  convention and nothing more. `/oauth2redirect` would do the same job.
+
+Since the definitions are now clear, let's set the scene for the example:
+
+We will assume that Strava is a public mobile app, and therefore a public
+client. A mobile app has no web server to receive a redirect, so instead it
+claims a **private-use URI scheme** with the operating system:
+`com.strava.app:/callback`
+
+Nothing stops a second app on the same device from claiming
+`com.strava.app` too, and when two apps claim one scheme the operating
+system simply picks one.
 
 1. The user accesses Strava and gets redirected to the Authorization
    Server.
 2. The user logs in to the Authorization Server.
-3. The user gets redirected back to Strava, but Strava sits on a spinner,
-   continually stuck at the prelogin screen, since the user's compromised
-   operating system took the Authorization Code. Strava never received it.
+3. The user gets redirected back to `com.strava.app:/callback`, but the
+   operating system hands that redirect to the malicious app instead.
+   Strava sits on a spinner, stuck at the prelogin screen, because it never
+   received the Authorization Code.
 4. The user simply refreshes Strava to start the OAuth flow again. But now
-   there is a legitimate Authorization Code sitting in the user's operating
-   system for any malicious program to use!
-5. The malicious program in the operating system sends a POST request to
-   the Authorization Server to get an Access Token.
+   the malicious app is holding a legitimate Authorization Code!
+5. The malicious app sends a POST request to the Authorization Server to
+   get an Access Token.
 
 :::facepalmDuck{align="left"}
 
@@ -900,10 +939,11 @@ Enough examples! Let's get into how PKCE works.
 
 :::
 
-If a public client cannot authenticate, and a confidential client cannot
-prove who it is with a long-lived secret, then each client can instead
-invent a brand new secret for every single flow, and prove it knows the
-generated secret when it receives the Authorization Code.
+A public client has no secret at all, and a confidential client's secret
+only proves _which client_ is redeeming a code, never _which authorization
+request_ that code came from. To fix this problem, each client invents a
+brand new secret for every single flow, and proves it knows that secret
+when it redeems the Authorization Code.
 
 :::me
 
@@ -921,36 +961,39 @@ Let's see this in action:
 1. Before redirecting the user to the Authorization Server, the client
    generates a large random string called the `code_verifier`, and keeps it
    to itself.
-1. It hashes that value with SHA-256 and base64-encodes the result. That is
-   the `code_challenge`.
+1. It hashes that value with SHA-256 and base64url-encodes the result. That
+   is the `code_challenge`.
 1. The user is redirected to the Authorization Server and the client sends
    only the `code_challenge` in the same HTTP request. The `code_verifier`
-   remains in the client and **never touches the browser**.
+   stays with the client and **never travels the front channel**. It stays
+   within the user's device for now.
 1. The user authenticates with the Authorization Server and approves the
    client.
 1. The Authorization Server stores the `code_challenge` next to the
    Authorization Code it generates.
 1. The Authorization Server redirects the user back to the client with the
-   same `code_challenge` and newly generated Authorization Code.
+   newly generated Authorization Code, exactly as before. The
+   `code_challenge` is **not** sent back. It stays in the Authorization
+   Server's record.
 1. The client takes the Authorization Code and directly requests an Access
    Token. This time sending the `code_verifier`.
 1. The Authorization Server hashes the `code_verifier` with SHA-256 and
-   base64-encodes it, just as the client initially did in step 3. It then
-   compares the result to the stored `code_challenge`. If there is a match
-   then it will generate an Access Token and respond back to the client
-   with the Access Token.
+   base64url-encodes it, just as the client initially did in step 3. It
+   then compares the result to the stored `code_challenge`. If there is a
+   match then it will generate an Access Token and respond back to the
+   client with the Access Token.
 
 :::pointingDuck
 
-The `code_challenge` and the `code_verifier` are the same random
-characters. It's just that the `code_challenge` is a hashed version of the
-`code_verifier` right?
+So the `code_challenge` is just the `code_verifier` put through a hash,
+right?
 
 :::
 
 :::strongme{align="right"}
 
-Exactly!
+Exactly! One is derived from the other. Anyone holding the `code_challenge`
+cannot work backwards to the `code_verifier`.
 
 :::
 
@@ -964,7 +1007,7 @@ In step 4 above, the `/authorize` endpoint in the Authorization Server
 picks up two new parameters:
 
 ```bash
-GET /authorize?response_type=code&scope=post&client_id=strava-mobile&redirect_uri=strava%3A%2F%2Fcallback&state=af0ifjsldkj&code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&code_challenge_method=S256 HTTP/1.1
+GET /authorize?response_type=code&scope=post&client_id=strava-mobile&redirect_uri=com.strava.app%3A%2Fcallback&state=af0ifjsldkj&code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&code_challenge_method=S256 HTTP/1.1
 Host: auth-server
 ```
 
@@ -977,7 +1020,7 @@ POST /token HTTP/1.1
 Host: auth-server
 Content-type: application/x-www-form-urlencoded
 
-grant_type=authorization_code&redirect_uri=strava%3A%2F%2Fcallback&client_id=strava-mobile&code=8V1pr0rJ&code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+grant_type=authorization_code&redirect_uri=com.strava.app%3A%2Fcallback&client_id=strava-mobile&code=8V1pr0rJ&code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
 ```
 
 Note that there is no `Authorization: Basic` header here, because a public
@@ -991,10 +1034,9 @@ they match.
 Now if we go through our attack examples again with PKCE, exactly as
 before, we will notice that the Authorization Code by itself is useless. To
 redeem it the attacker also needs the `code_verifier`. The attacker can
-never get the `code_verifier` because it remained in the app and was never
-exposed to the internet. All the attacker can do is send the
-`Authorization Code` without a verifier, which the Authorization Server
-rejects.
+never get the `code_verifier` because it only ever travels the back
+channel. All the attacker can do is send the `Authorization Code` without a
+verifier, which the Authorization Server rejects.
 
 ## Conclusion
 
