@@ -48,8 +48,8 @@ Let's reuse the same example that we have been using from the start.
 
 In the real world Facebook runs both the protected resource and the
 Authorization Server, but remember that these are two separate roles.
-Facebook the API, validates Access Tokens, and Facebook the Authorization
-Server, issues them. For the rest of this post we only care about Facebook
+Facebook the API validates Access Tokens, and Facebook the Authorization
+Server issues them. For the rest of this post we only care about Facebook
 the Authorization Server.
 
 ## The Whole Flow At A Glance
@@ -104,7 +104,7 @@ An Authorization Server asks an administrator for a handful of details
 before it will register a client. Those details are what let the client
 authenticate itself, request an Authorization Code, and exchange that code
 for an Access Token, which is how the user's authorizations end up
-delegated to the client
+delegated to the client.
 
 Here are the details that the Authorization Server asks an administrator to
 statically register a client:
@@ -135,8 +135,8 @@ statically register a client:
 
 2. **Redirect URIs**: It is necessary to provide
    [redirect URIs](/posts/oauth-client#url-redirect) for a client. The
-   Authorization Server needs to know where to redirect the user to after
-   the user has logged in to the Authorization Server and delegated
+   Authorization Server needs to know where to redirect the user after the
+   user has logged in to the Authorization Server and delegated
    authorizations to the client. The user should then be redirected to the
    client with the Authorization Code.
 3. **Grant types**: OAuth flows that the client is allowed to use.
@@ -209,10 +209,10 @@ registered to the Authorization Server.
 
 ### Dynamic Client Registration
 
-Static Client registration is the default but sometimes it can be quite
+Static Client Registration is the default, but sometimes it can be quite
 inconvenient. Let's take Email as another example. A mail provider's
 Authorization Server has to let outside applications access a user's inbox
-on user's behalf, and unlike Strava, there's no single client app doing
+on the user's behalf, and unlike Strava, there's no single client app doing
 that. There could be multiple apps that would want access to the user's
 mailbox. A user might connect with Thunderbird, Apple Mail, Outlook, or any
 of dozens of other email clients, with new ones showing up all the time.
@@ -223,8 +223,8 @@ might ever try to connect. That doesn't scale.
 The solution to the above scalability problem is Dynamic Client
 Registration. It is a way for clients to dynamically register themselves on
 an Authorization Server that accepts this protocol. Without the need for an
-administrator to login to the Authorization Server and manually enter every
-client.
+administrator to log in to the Authorization Server and manually enter
+every client.
 
 Dynamic Client Registration is done by the Authorization Server which
 exposes a registration endpoint, normally called `/register`. The actual
@@ -232,7 +232,7 @@ path is not fixed by the spec. A client discovers it from the Authorization
 Server's metadata document, published under the `registration_endpoint`
 field. The client itself sends a request to this endpoint describing what
 it needs, instead of an administrator filling out a form on the
-Authorization Server to statically register a client,
+Authorization Server to statically register a client.
 
 :::confusedDuck
 
@@ -244,7 +244,7 @@ etc... when the client sends a request to the `/register` endpoint?
 :::me
 
 Yes! That data is still needed in the call. Below is an example request
-with all the details that client needs to provide in order for it to be
+with all the details that the client needs to provide in order for it to be
 dynamically registered on the Authorization Server.
 
 :::
@@ -444,7 +444,7 @@ login here rather than some third-party sign-in page.
 
 :::
 
-Once the user approves this message, then the user will officially delegate
+Once the user approves this message, the user will officially delegate
 their authorizations to Strava. In this case, Strava will now have
 permissions to make a Facebook post on the user's behalf.
 
@@ -520,12 +520,12 @@ belongs to this one flow only:
 }
 ```
 
-We will discuss the token endpoint next, where client will request an
+We will discuss the token endpoint next, where the client will request an
 Access Token. Every check the token endpoint is about to run is a
 comparison against those two records. That is the whole job: move forward
 with what was agreed, then refuse anything that does not match it.
 
-The saved Authorization code is short-lived and single-use. The spec
+The saved Authorization Code is short-lived and single-use. The spec
 recommends a maximum lifetime of ten minutes, and once a code has been
 exchanged for an Access Token the Authorization Server must reject any
 further attempt to use it. If a code that has already been redeemed shows
@@ -567,7 +567,7 @@ registration. Before it issues anything, the Authorization Server checks
 all of the following:
 
 - The `client ID` and `client secret` are valid.
-- The Authorization Code(`code`) matches an Authorization Code it saved
+- The Authorization Code (`code`) matches an Authorization Code it saved
   earlier, and that code has not expired or already been used.
 - The code was issued **to this same client**. A code handed to Strava
   cannot be redeemed by any other client, even a correctly authenticated
@@ -611,7 +611,7 @@ is the `refresh_token`.
 We met the Refresh Token from the client's side in
 [Part 2](/posts/oauth-client#refresh-token). When the Access Token dies,
 the client would send the Refresh Token to the `/token` endpoint from the
-Authorization Server and get a new one. Let's look at this in the
+Authorization Server and get a new one. Let's look at this from the
 perspective of the Authorization Server now.
 
 An Access Token is deliberately short-lived. This is why the protected
@@ -629,13 +629,13 @@ The principle of the user authorizing the client only once, for the client
 to use the delegated authorization multiple times without bothering the
 user on every request is known as
 [TOFU](https://en.wikipedia.org/wiki/Trust_on_first_use) (Trust On First
-Use)
+Use).
 
 :::
 
 Here is the client coming back to the Authorization Server an hour later,
-when the Access Token expires, and using a refresh token to request for a
-new Access Token:
+when the Access Token expires, and using a Refresh Token to request a new
+Access Token:
 
 ```bash
 POST /token HTTP/1.1
@@ -661,9 +661,9 @@ ran on the Authorization Code:
   with it.
 
 The Authorization Server issues a fresh Access Token if all of the above is
-is still true.
+still true.
 
-Here is an example successful response from the Authorization server:
+Here is an example successful response from the Authorization Server:
 
 ```bash
 HTTP/1.1 200 OK
@@ -697,7 +697,7 @@ lifespan compared to the Access Token.
 True for a confidential client like Strava. But a public client has no
 secret to authenticate with, so a stolen Refresh Token would otherwise be
 usable for a very long time by whoever stole it. The Authorization Server
-can detect a stolen refresh token with a Rotation.
+can detect a stolen Refresh Token with rotation.
 
 :::
 
@@ -705,7 +705,7 @@ The detection works exactly like the Authorization Code replay we described
 earlier. If a Refresh Token that has already been rotated away shows up
 again, there are only two possible explanations:
 
-1. The client failed to store the new one
+1. The client failed to store the new one.
 2. Somebody stole the old one.
 
 The Authorization Server cannot tell which, so it assumes the worst and
@@ -778,23 +778,23 @@ Let's go!
 ## PKCE
 
 Since the start of the blog series we assumed that our OAuth client,
-Strava, is a private client. What if it were a public client? If Strava
-just has a client ID with no client secret, how does Strava successfully
-authenticate to the Authorization Server and grab and Access Token?
+Strava, is a confidential client. What if it were a public client? If
+Strava just has a client ID with no client secret, how does Strava
+successfully authenticate to the Authorization Server and grab an Access
+Token?
 
-Stricly speaking, the public client is still able to grab an Access Token
-from the Authorization Server without authentication. The OAuth reference
-allows for that.
+Strictly speaking, the public client is still able to grab an Access Token
+from the Authorization Server without authentication. The OAuth
+specification allows for that.
 
 Even with the Authorization Server accepting unauthenticated requests from
 the client to get an Access Token, there is still some level of safety.
 
 :::me
 
-Pause! Before reading ahead, can you think about what safety primitives
-that are built into the Authorization Server to stop an attacker even when
-a public client is used? I'll give you a hint: we already discussed it in
-this blog!
+Pause! Before reading ahead, can you think about what safety primitives are
+built into the Authorization Server to stop an attacker even when a public
+client is used? I'll give you a hint: we already discussed it in this blog!
 
 :::
 
@@ -803,7 +803,7 @@ this blog!
 - The redirect URIs for a specific client (even public clients) are already
   registered. So even if the attacker were to send a request through an
   attacker client, it would fail since the redirect URIs of the attacker
-  client is not register in the Authorization Server.
+  client are not registered in the Authorization Server.
 - You still need an actual user to authenticate on the Authorization Server
   in order to delegate authorizations to the client. The attacker does not
   know the user's username and password.
@@ -813,8 +813,8 @@ this blog!
 
 :::
 
-Even though safety primitives exist for public clients. An attacker can
-still The solution is PKCE (Proof Keeper code Exchange)!
+Even though these safety primitives exist for public clients, an attacker
+can still get through. The solution is PKCE (Proof Key for Code Exchange)!
 
 Let's walk through a concrete example where public clients can be
 compromised if PKCE is not used:
@@ -823,7 +823,7 @@ compromised if PKCE is not used:
 
 :::note
 
-For the example below, we will assume that Strava is as a public client. We
+For the example below, we will assume that Strava is a public client. We
 will also assume that the user's operating system is compromised and routes
 incoming traffic to malicious processes.
 
@@ -832,10 +832,9 @@ incoming traffic to malicious processes.
 1. The user accesses Strava and gets redirected to the Authorization
    Server.
 2. The user logs in to the Authorization Server.
-3. The user gets redirected back to Strava but Strava sits on a spinner
-   continually stuck at prelogin screen since the malicious operating
-   system that the user has took out the Authorization Code. Strava never
-   received it.
+3. The user gets redirected back to Strava, but Strava sits on a spinner,
+   continually stuck at the prelogin screen, since the user's compromised
+   operating system took the Authorization Code. Strava never received it.
 4. The user simply refreshes Strava to start the OAuth flow again. But now
    there is a legitimate Authorization Code sitting in the user's operating
    system for any malicious program to use!
@@ -852,30 +851,30 @@ is no authentication required.
 
 :::me{align="right"}
 
-Private clients are also in trouble if PKCE is not used.
+Confidential clients are also in trouble if PKCE is not used.
 
 :::
 
 :::eyesDuck{align="left"}
 
-private clients are immune to Authorization code injection attack. What
-could be an attack that a private client could be vulnerable to without
-PKCE?
+Confidential clients are immune to the Authorization Code interception
+attack. What could be an attack that a confidential client could be
+vulnerable to without PKCE?
 
 :::
 
 :::me{align="right"}
 
-Let's walk through another example attack for private clients where PKCE is
-not involved.
+Let's walk through another example attack for confidential clients where
+PKCE is not involved.
 
 :::
 
 ### Authorization Code Injection
 
-1. The Attacker somehow obtains a code issued to the victim for this
+1. The attacker somehow obtains a code issued to the victim for this
    client, just as in the previous example.
-2. Attacker, in their own browser, starts a normal login at the client.
+2. The attacker, in their own browser, starts a normal login at the client.
    They get a legitimate authorization request and their own state.
 3. At the redirect step, instead of letting their own code come back, they
    replace the code parameter with the victim's, keeping their own state
@@ -883,8 +882,8 @@ not involved.
 4. The client sees a valid state for its own session, so it proceeds. It
    POSTs to the token endpoint with its client_secret and the victim's
    code.
-5. The AS validates the secret (correct), validates the code (correct,
-   issued to this client), and returns the victim's tokens.
+5. The Authorization Server validates the secret (correct), validates the
+   code (correct, issued to this client), and returns the victim's tokens.
 6. The client establishes a session, in the attacker's browser, for the
    victim's account.
 
@@ -893,7 +892,7 @@ not involved.
 The solution for an authorization code interception attack, and an
 authorization code injection attack is **PKCE** (Proof Key for Code
 Exchange) defined in
-[RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636) ".
+[RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636).
 
 :::magnifyingglassme
 
@@ -901,20 +900,20 @@ Enough examples! Let's get into how PKCE works.
 
 :::
 
-If a public client cannot authenticate, and a private client cannot prove
-who it is with a long-lived secret, then each client can instead invent a
-brand new secret for every single flow, and prove it knows the generated
-secret when it recieves the Authorization code.
+If a public client cannot authenticate, and a confidential client cannot
+prove who it is with a long-lived secret, then each client can instead
+invent a brand new secret for every single flow, and prove it knows the
+generated secret when it receives the Authorization Code.
 
 :::me
 
-Let me repeast the above paragraph again for those who didn't undersatnd:
+Let me repeat the above paragraph for those who didn't understand:
 
 :::
 
-The client (whether public or private) would generate a random string. The
-client will then be tasked to prove it knows that randomly generated string
-when it receives the Authorization Code.
+The client (whether public or confidential) would generate a random string.
+The client will then be tasked to prove it knows that randomly generated
+string when it receives the Authorization Code.
 
 Let's see this in action:
 
@@ -931,15 +930,15 @@ Let's see this in action:
    client.
 1. The Authorization Server stores the `code_challenge` next to the
    Authorization Code it generates.
-1. The Authorization Server Redirects the user back to the client with the
+1. The Authorization Server redirects the user back to the client with the
    same `code_challenge` and newly generated Authorization Code.
-1. The client takes the Authorization code and directly requests an Access
+1. The client takes the Authorization Code and directly requests an Access
    Token. This time sending the `code_verifier`.
 1. The Authorization Server hashes the `code_verifier` with SHA-256 and
-   base64-encodes it, just as the client initially did in step 3. Then
-   compares the `code_verifier` to the stored `code_challenge`. If there is
-   a match then it will generate an Access Token and respond back to the
-   client with the Access Token.
+   base64-encodes it, just as the client initially did in step 3. It then
+   compares the result to the stored `code_challenge`. If there is a match
+   then it will generate an Access Token and respond back to the client
+   with the Access Token.
 
 :::pointingDuck
 
@@ -971,7 +970,7 @@ Host: auth-server
 
 The Authorization Server files that `code_challenge` away with the code.
 When the client returns to the token endpoint, it proves itself by handing
-over the original value, as described in step 9:
+over the original value, as described in step 8:
 
 ```bash
 POST /token HTTP/1.1
@@ -990,11 +989,11 @@ compares it against the stored `code_challenge`, and only issues a token if
 they match.
 
 Now if we go through our attack examples again with PKCE, exactly as
-before. We will notice that the Authorization Code by itself is useless. To
+before, we will notice that the Authorization Code by itself is useless. To
 redeem it the attacker also needs the `code_verifier`. The attacker can
-never get the `code_verifier` because it remained in the app and never
+never get the `code_verifier` because it remained in the app and was never
 exposed to the internet. All the attacker can do is send the
-`Authorization code` without a verifier, which the Authorization Server
+`Authorization Code` without a verifier, which the Authorization Server
 rejects.
 
 ## Conclusion
@@ -1010,15 +1009,15 @@ The Authorization Server is where nearly all of OAuth's complexity lives,
 and that is by design.
 
 It registers clients, publishes its own metadata, authenticates users,
-hands out Auhtorization Codes, Access Tokens and Refresh Tokens, and more!
+hands out Authorization Codes, Access Tokens and Refresh Tokens, and more!
 
-Every one of those steps paves the way for clients and private resources to
-be as simple as possible. Since there are more clients and private
+Every one of those steps paves the way for clients and protected resources
+to be as simple as possible, since there are more clients and protected
 resources than Authorization Servers.
 
 :::proudDuck
 
-I should go back up tot he animation at the start of the blog and see if I
+I should go back up to the animation at the start of the blog and see if I
 now fully understand it.
 
 :::
