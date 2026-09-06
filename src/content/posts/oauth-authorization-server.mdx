@@ -435,10 +435,10 @@ sitting on top of OAuth 2.0, which will be discussed in another blog post.
 
 ## The Consent Screen
 
-The request checks out and the user has authenticated, so the Authorization
-Server can finally ask the question the whole flow exists to ask: is the
-user comfortable letting Strava post to Facebook on their behalf? This is
-typically what that screen looks like:
+The entire OAuth flow exists to ask one question: is the user comfortable
+letting Strava post to Facebook on their behalf? This is typically what
+that screen looks like after the client intially redirects the user to the
+Authorization Server:
 
 ![Strava Consent](../images/strava-consent.png)
 
@@ -451,11 +451,11 @@ separate component from the protected resource?
 
 :::me
 
-It is, and in the protocol they stay separate. They are roles, not
-necessarily different companies. In the real world one organisation usually
-runs both, so the consent screen wears Facebook's branding even though it
-is the Authorization Server talking. That is also why you see a Facebook
-login here rather than some third-party sign-in page.
+The Auhtorization Server is a separate component to the Protected Resource.
+In the real world one organisation usually runs both, so the consent screen
+wears Facebook's branding even though it is the Authorization Server
+talking. That is also why you see a Facebook login here rather than some
+third-party sign-in page.
 
 :::
 
@@ -541,8 +541,7 @@ PKCE, which we cover [further down](#pkce). Ignore them for now.
 
 We will discuss the token endpoint next, where the client will request an
 Access Token. Every check the token endpoint is about to run is a
-comparison against those two records. That is the whole job: move forward
-with what was agreed, then refuse anything that does not match it.
+comparison against those two records.
 
 The saved Authorization Code is short-lived and single-use. The spec
 recommends a maximum lifetime of ten minutes, and once a code has been
@@ -875,7 +874,7 @@ claims a **private-use URI scheme** with the operating system:
 `com.strava.app:/callback`
 
 Nothing stops a second app on the same device from claiming
-`com.strava.app` too, and when two apps claim one scheme the operating
+`com.strava.app` too, and when two apps claim one scheme, the operating
 system simply picks one.
 
 1. The user accesses Strava and gets redirected to the Authorization
