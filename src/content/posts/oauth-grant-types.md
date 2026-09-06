@@ -4,8 +4,7 @@ published: 2026-09-15
 draft: false
 description:
   "Client Credentials for machine-to-machine calls, Device Authorization
-  for screens without a keyboard, and why the Implicit and Password grants
-  got retired."
+  for screens without a keyboard, and why the Implicit grant got retired."
 tags: ["OAuth", "Security", "Authentication"]
 series: "OAuth Simplified"
 ---
@@ -13,7 +12,7 @@ series: "OAuth Simplified"
 ## Introduction
 
 Ever since the start of this blog series, we have used a single example and
-looked it in different perspectives:
+looked at it from different perspectives:
 
 - **Resource Owner**: you 🫵, the owner of the Facebook account.
 - **Client**: Strava, the running app that wants to post your workout to
@@ -39,7 +38,7 @@ different angles. We have looked at this flow from
 and
 [the Authorization Server's perspective](/posts/oauth-authorization-server).
 
-In this post we'll look three grant types:
+In this post we'll look at three grant types:
 
 - **Client Credentials Grant** — no user at all. The client is acting on
   its own behalf.
@@ -63,11 +62,11 @@ Let me explain.
 
 ## OAuth Grant Type
 
-A grant type is simply referred to as a type of OAuth flow. For example,
-what happens if the user and browser is not involved in the OAuth flow and
-only the client and Authorization Server are involved? In that case this
-grant type would be known as the **Client Credential Grant Type**. It is
-simply a different type flow of events under the OAuth umbrella.
+A grant type simply refers to a specific type of OAuth flow. For example,
+what happens if the user and browser are not involved in the OAuth flow and
+only the client and Authorization Server are involved? In that case, this
+grant type would be known as the **Client Credentials Grant Type**. It is
+simply a different flow of events under the OAuth umbrella.
 
 By now, you should have a good understanding of the Authorization Code
 grant type.
@@ -76,8 +75,8 @@ In [Part 4](/posts/oauth-authorization-server#client-registration) we saw
 that "grant type" is literally a field the Authorization Server stores
 against every registered client. This is because the Authorization Server
 needs to know what grant types a client can support. For example, can a
-client handle a user and a browser not being present, or is that a must?
-This creates the cieling of capabilities for the client.
+client operate without a user and browser present, or must they always be
+present? This creates the ceiling of capabilities for the client.
 
 :::confusedDuck
 
@@ -88,8 +87,8 @@ to Facebook on behalf of a user.
 
 :::me
 
-That's true for the usecases you have mentioned, but let's think about
-other usecases where the user is not relevant anymore.
+That's true for the use cases you have mentioned, but let's think about
+other use cases where the user is not relevant anymore.
 
 :::
 
@@ -120,14 +119,14 @@ The client is Strava, and it's asking for access to a resource it already
 owns. You don't own Strava's Facebook account. Strava (the client) does!
 
 Broadly speaking, if the client already owns or has the necessary
-authorization to access the private resource then the user becomes
+authorization to access the private resource, then the user becomes
 irrelevant.
 
-There is no need to support the front channel anymore, since all front
-channel calls go through the browser. Since there is no user there is now
-browser! When the resource owner and the client are the same party, the
-entire front channel disappears.No redirect, no login screen, no consent
-screen, and no Authorization Code. The flow becomes very simple
+There is no need to support the front channel anymore, since front-channel
+calls go through the browser, and there is no user here, so there is no
+browser. When the resource owner and the client are the same party, the
+entire front channel disappears. No redirect, no login screen, no consent
+screen, and no Authorization Code. The flow becomes very simple.
 
 This means that the client just authenticates directly to the token
 endpoint and asks for a token in one request. This is how the OAuth flow is
@@ -169,7 +168,7 @@ Cache-Control: no-store
 
 :::suspiciousDuck
 
-That's it?? The entire Client Credential Grant Type is made up of two HTTP
+That's it?? The entire Client Credentials Grant Type is made up of two HTTP
 requests?
 
 :::
@@ -181,20 +180,20 @@ simple.
 
 :::
 
-Finally, Note that there is no Refresh Token.
+Finally, note that there is no Refresh Token.
 [RFC 6749](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4.3)
 states: "A refresh token SHOULD NOT be included." A Refresh Token exists to
 spare a **user** from being dragged through consent again. There is no user
 here, so there is no need for a Refresh Token. The only credentials that
-are required are the client ID and client Secret which are readily
+are required are the client ID and client secret, which are readily
 available to the client. When the token expires, the client just sends the
 exact same `client_credentials` request again.
 
 :::note
 
-The Client Credential Grant Type is the grant type behind almost every
+The Client Credentials Grant Type is the grant type behind almost every
 server-to-server integration. The Access Token from this grant type can
-also be sometimes referred to as machine-to-machine token (m2m token)
+also sometimes be referred to as a machine-to-machine token (M2M token).
 
 :::
 
@@ -221,17 +220,17 @@ Never fear! OAuth has an answer.
 The Device Authorization Grant, defined in
 [RFC 8628](https://datatracker.ietf.org/doc/html/rfc8628), solves this by
 moving the login step onto a different device you can actually be
-redirected on, like your phone. Meaning you can delegate your
-authorizations to Strava (on the Garmin watch) through your phone so the
+redirected on, like your phone. This means you can delegate your
+authorization to Strava (on the Garmin watch) through your phone, so the
 OAuth flow can continue.
 
-In other words, this Grant type allows you to give consent on a different
+In other words, this grant type allows you to give consent on a different
 device from the one you started the OAuth flow with.
 
 Here's how the watch gets your Facebook Access Token:
 
-1. **The Garmin watch directly asks for an Authorization Code from the
-   Authorization Server, instead of redirecting the user.** It calls a new
+1. **The Garmin watch directly asks the Authorization Server for a device
+   code, instead of redirecting the user.** It calls a new
    endpoint, conventionally `/device_authorization`, with just its
    `client_id` and the scope it wants. There's no `redirect_uri` because
    nothing is ever going to redirect on this device.
@@ -275,10 +274,10 @@ Here's how the watch gets your Facebook Access Token:
    [Part 4](/posts/oauth-authorization-server#the-consent-screen) asking
    whether the watch can post on your behalf. You approve.
 5. **The watch polls for you in the background.** While you were busy on
-   your phone, the watch has been intermittintly polling `/token` on the
-   Authorization Server every `interval` seconds (5, in our example)
-   whether you're done yet. Here is what the polling request from the
-   Garmin watch looks like.:
+   your phone, the watch has been intermittently polling `/token` on the
+   Authorization Server every `interval` seconds (5, in our example) to
+   check whether you're done yet. Here is what the polling request from the
+   Garmin watch looks like:
 
    ```bash
    POST /token HTTP/1.1
@@ -288,7 +287,7 @@ Here's how the watch gets your Facebook Access Token:
    grant_type=urn:ietf:params:oauth:grant-type:device_code&device_code=8V1pr0rJ-4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk&client_id=strava-watch
    ```
 
-   If you are still in the process of approving on your phone then this is
+   If you are still in the process of approving on your phone, then this is
    the response that your Garmin watch will get back from the poll:
 
    ```bash
@@ -337,9 +336,9 @@ to check that it matches what the watch is displaying. It is the one place
 in this flow where the security depends on the user actually reading the
 screen.
 
-## Choosing A Grant Type
+## Choosing a Grant Type
 
-Pulling all five together, the decision mostly comes down to two questions:
+Pulling these three together, the decision mostly comes down to two questions:
 is there a specific person delegating access, and does the device that
 person is holding have a browser?
 
@@ -358,11 +357,11 @@ for.
 
 ## Conclusion
 
-OAuth was designed to be extremely flexible. It accounts of users not being
-present, devices not supporting redirects on the browser etc... There are
-still many flows that we did not cover. And new ones being created even
-today. The three flows we discussed today are the most important, in my
-opinion.
+OAuth was designed to be extremely flexible. It accounts for users not
+being present, devices not supporting redirects on the browser, etc. There
+are still many flows that we did not cover, and new ones are being created
+even today. The three flows we discussed today are the most important, in
+my opinion.
 
 Whichever grant type a client uses, it lands in the exact same place every
 other post in this series has led to: an Access Token, checked by a
