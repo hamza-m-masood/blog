@@ -47,10 +47,10 @@ Let's reuse the same example that we have been using from the start.
   will accept.
 
 In the real world Facebook runs both the protected resource and the
-Authorization Server, but remember that these are two separate roles.
-Facebook the API validates Access Tokens, and Facebook the Authorization
-Server issues them. For the rest of this post we only care about Facebook
-the Authorization Server.
+Authorization Server. These are two separate roles, that can be in the same
+program. The company Facebook has a Facebook branded Authorization Server
+and a private resource which is the actual social media website. For the
+rest of this post we only care about Facebook the Authorization Server.
 
 ## The Whole Flow At A Glance
 
@@ -144,12 +144,13 @@ statically register a client:
    [Implicit Grant Type](/posts/introduction-to-oauth#delegating-access)
    and the
    [Authorization Code Grant Type](/posts/introduction-to-oauth#enhancing-security).
+   We will discuss more flows in a future blog post.
 4. **Scopes**: The [scopes](/posts/oauth-protected-resource#scope) that the
    client is allowed to ask for. The Authorization Server will refuse any
    request for a scope outside this list, and it uses this list to tell the
-   user what they are being asked to approve. For example, our Strava
-   application needs the `post` scope to make Facebook posts on the user's
-   behalf.
+   user what authorizations they are being asked to approve. For example,
+   our Strava application needs the `post` scope to make Facebook posts on
+   the user's behalf.
 5. **Audience**: In most cases, specifying an Audience is optional. The
    Audience value can be thought of in contrast to the Scope value. The
    Scope value defines _what_ the client can do. The Audience value defines
@@ -235,14 +236,15 @@ Authorization Server to statically register a client.
 
 :::confusedDuck
 
-Is it still necessary for the client to provide the redirect URIs, scopes
-etc... when the client sends a request to the `/register` endpoint?
+Is it still necessary for the client to provide everything that the
+administrator provided intitially, when the client sends a request to the
+`/register` endpoint?
 
 :::
 
 :::me
 
-Yes! That data is still needed in the call. Below is an example request
+Yes! All that data is still needed in the call. Below is an example request
 with all the details that the client needs to provide in order for it to be
 dynamically registered on the Authorization Server.
 
@@ -262,14 +264,23 @@ Accept: application/json
   "token_endpoint_auth_method": "client_secret_basic",
   "scope": "read_email"
 }
+
 ```
 
-[Superhuman](https://superhuman.com/) syncs a user's mail through its own
-backend servers rather than reading it directly on the user's device, so it
-registers as a confidential client. Note the `token_endpoint_auth_method`
-of `client_secret_basic`, which tells the Authorization Server that this
-client intends to authenticate itself with a secret, in the same
-`Authorization: Basic` header the client used when
+:::note
+
+Note how the above data is the same as what the administrator has to
+provide when doing static client registration. This time, the infromation
+is sent by the client itself.
+
+:::
+
+For example, [Superhuman](https://superhuman.com/) syncs a user's mail
+through its own backend servers rather than reading it directly on the
+user's device, so it registers as a confidential client. Note the
+`token_endpoint_auth_method` of `client_secret_basic`, which tells the
+Authorization Server that this client intends to authenticate itself with a
+secret, in the same `Authorization: Basic` header the client used when
 [requesting an Access Token](/posts/oauth-client#client-requests-access-token).
 The Authorization Server responds with a `client ID` and, since this is a
 confidential client, a `client secret`.
@@ -298,7 +309,7 @@ Cache-Control: no-store
 
 Whenever a `client secret` is issued, the Authorization Server must also
 return `client_secret_expires_at`. A value of `0` means the secret never
-expires; any other value is a timestamp after which the client has to
+expires. Any other value is a timestamp after which the client has to
 register again or rotate its secret.
 
 The client can then use this `client ID` (and `client secret`, if it
@@ -328,7 +339,7 @@ from the
 None of those paths are fixed by the spec. They are conventions, and every
 Authorization Server is free to pick its own.
 
-That would be a problem if every client had to be told each path by hand.
+There would be a problem if every client had to be told each path by hand.
 The solution is a metadata document, defined in
 [RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414), that the
 Authorization Server publishes at a well-known location:
@@ -373,16 +384,16 @@ A client only has to be configured with one value, **the issuer URL**, and
 it can discover the rest. The client builds the metadata URL out of the
 issuer it was given, so a client configured with issuer
 `https://auth-server` fetches
-`https://auth-server/.well-known/oauth-authorization-server`. When the
-response comes back, the response's `issuer` field must be identical to the
-`issuer` the client started with: `https://auth-server`.
+`https://auth-server/.well-known/oauth-authorization-server`.
 
-Every endpoint inside the response is an absolute URL that can point
-anywhere. A document served from `auth-server` that claimed
-`"issuer": "https://evil-server"` would be one server speaking on behalf of
-another, and a client that skipped the check would happily send the user,
-the Authorization Code, and its `client secret` to whatever
-`token_endpoint` that document listed.
+When the response comes back, the response's `issuer` field must be
+identical to the `issuer` the client started with: `https://auth-server`.
+Every endpoint inside the metadata response from the Authorization Server
+is an absolute URL that can point anywhere. A document served from
+`auth-server` that claimed `"issuer": "https://evil-server"` would be one
+server speaking on behalf of another. A client that skipped the check would
+happily send the user, the Authorization Code, and its `client secret` to
+whatever `token_endpoint` that document listed.
 
 ## The Authorization Endpoint
 
@@ -391,8 +402,8 @@ Authorization Server and an OAuth flow has started. Keeping with our
 Strava/Facebook example: the user has accessed Strava, and is now
 redirected to the Authorization Server.
 
-The Authorization Server exposes an endpoint to accept these redirected
-users, typically named `/authorize`. The redirect flow was discussed in the
+The Authorization Server exposes an endpoint (typically named `/authorize`)
+to accept these redirected users. The redirect flow was discussed in the
 [OAuth Client deep-dive blog](/posts/oauth-client#url-redirect-for-user),
 where an example was given using the `/authorize` endpoint.
 
@@ -402,14 +413,13 @@ incoming request against what was stored during client registration:
 - Is the `client_id` a client it knows about?
 - Does the `redirect_uri` exactly match one of the redirect URIs registered
   for that client?
-- Is the requested `response_type` (`code`) one that this client
-  registered, and does it correspond to a grant type the client is allowed
-  to use?
+- Is the requested `response_type` (`code`) correspond to a grant type the
+  client is allowed to use?
 - Are the requested scopes a subset of the scopes the client registered?
 
 The `redirect_uri` check has to happen first, and it has to be an exact
 string match. If the `client_id` is unknown or the `redirect_uri` doesn't
-match, the Authorization Server must _not_ redirect the error back: doing
+match, the Authorization Server must _not_ redirect the error back. Doing
 so would turn it into an open redirector for an attacker. It has to render
 the error on its own page instead. For every other failure, the error is
 returned to the registered redirect URI as an `error` query parameter,

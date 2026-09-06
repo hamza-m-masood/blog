@@ -57,7 +57,7 @@ const STEPS: Step[] = [
     n: 5,
     from: 2,
     label: 'check client_id + redirect_uri',
-    html: 'The Authorization Server <b>checks</b> that the client ID is known and that the redirect URI exactly matches a registered one. If either fails, it stops here and renders an error on its own page.',
+    html: 'The Authorization Server <b>checks</b> that the client ID is known and that the redirect URI exactly matches what is already saved from the registered client. If either fails, it stops here and renders an error on its own page.',
   },
   {
     n: 6,
@@ -84,7 +84,7 @@ const STEPS: Step[] = [
     n: 10,
     from: 2,
     label: 'store code + challenge (10 min)',
-    html: 'The Authorization Server generates an Authorization Code and <b>stores</b> it against this user, this client, the approved scope, the redirect URI, and the <code>code_challenge</code>, with a ten minute expiry.',
+    html: 'The Authorization Server generates an Authorization Code, with a ten minute expiry, then <b>stores</b> it with the details of the registered client and the  <code>code_challenge</code>.',
   },
   {
     n: 11,
@@ -104,13 +104,13 @@ const STEPS: Step[] = [
     from: 1,
     to: 2,
     label: '/token + code + code_verifier',
-    html: 'Strava calls the <a href="#the-token-endpoint">token endpoint</a> on the back channel with the Authorization Code, its client credentials, the redirect URI and the <code>code_verifier</code>.',
+    html: 'Strava calls the <a href="#the-token-endpoint">token endpoint</a> on the <a href="/posts/oauth-client#back-channel-vs-front-channel">back channel</a> with the Authorization Code, its client credentials, the redirect URI and the <code>code_verifier</code>.',
   },
   {
     n: 14,
     from: 2,
     label: 'check code + SHA256(verifier)',
-    html: 'The Authorization Server <b>checks</b> the client credentials, that the code exists and is unused and unexpired, that the code was issued to this client, that the redirect URI matches, and that the hash of the verifier equals the stored <a href="#pkce"><code>code_challenge</code></a>.',
+    html: 'The Authorization Server <b>checks</b> the client credentials. Also checks if the Authorization Code sent by Strava exists and is unused, making sure that the Authorization Code was issued to this client, verifying that the redirect URI matches, and verifying that the hash of the `code_verifier` equals the stored <a href="#pkce"><code>code_challenge</code></a>.',
   },
   {
     n: 15,
@@ -316,8 +316,7 @@ const laneX = (i: number) => LANES[i].x
 
   <figcaption class="of-caption">
     Steps <b>5</b>, <b>6</b>, <b>10</b>, <b>14</b> and <b>20</b> are highlighted because nothing
-    crosses the network. They happen entirely inside the Authorization Server, and they are
-    the steps that make every other step safe.
+    crosses the network. They happen entirely inside the Authorization Server.
   </figcaption>
 </figure>
 
