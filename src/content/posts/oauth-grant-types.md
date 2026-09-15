@@ -3,8 +3,8 @@ title: "Part 5 - OAuth Grant Types"
 published: 2026-09-15
 draft: false
 description:
-  "Client Credentials for machine-to-machine calls, Device Authorization
-  for screens without a keyboard, and why the Implicit grant got retired."
+  "Client Credentials for machine-to-machine calls, and Device
+  Authorization for screens without a keyboard."
 tags: ["OAuth", "Security", "Authentication"]
 series: "OAuth Simplified"
 ---
@@ -44,9 +44,6 @@ In this post we'll look at three grant types:
   its own behalf.
 - **Device Authorization Grant** — there's a user, but the device asking
   for access doesn't have a way to show them a login page.
-- **Implicit Grant** — the flow we quietly walked past in
-  [Part 1](/posts/introduction-to-oauth#delegating-access) before hardening
-  it into the Authorization Code Grant. Also deprecated.
 
 :::confusedDuck
 
@@ -230,10 +227,10 @@ device from the one you started the OAuth flow with.
 Here's how the watch gets your Facebook Access Token:
 
 1. **The Garmin watch directly asks the Authorization Server for a device
-   code, instead of redirecting the user.** It calls a new
-   endpoint, conventionally `/device_authorization`, with just its
-   `client_id` and the scope it wants. There's no `redirect_uri` because
-   nothing is ever going to redirect on this device.
+   code, instead of redirecting the user.** It calls a new endpoint,
+   conventionally `/device_authorization`, with just its `client_id` and
+   the scope it wants. There's no `redirect_uri` because nothing is ever
+   going to redirect on this device.
 
    ```bash
    POST /device_authorization HTTP/1.1
@@ -338,9 +335,9 @@ screen.
 
 ## Choosing a Grant Type
 
-Pulling these three together, the decision mostly comes down to two questions:
-is there a specific person delegating access, and does the device that
-person is holding have a browser?
+Pulling these three together, the decision mostly comes down to two
+questions: is there a specific person delegating access, and does the
+device that person is holding have a browser?
 
 | Grant Type                  | User involved?          | Needs a browser on that device? | Refresh Token?  |
 | --------------------------- | ----------------------- | ------------------------------- | --------------- |
