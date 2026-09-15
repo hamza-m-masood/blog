@@ -142,6 +142,14 @@ const config: SiteConfig = {
     chefDuck: '/chefDuck.webp',
     cameraDuck: '/cameraDuck.webp',
     paintingDuck: '/paintingDuck.webp',
+    saluteMe: '/saluteMe.webp',
+    thinkMe: '/thinkMe.webp',
+    dabMe: '/dabMe.webp',
+    starEyesMe: '/starEyesMe.webp',
+    susMe: '/susMe.webp',
+    evilKermitMe: '/evilKermitMe.webp',
+    lastNerveMe: '/lastNerveMe.webp',
+    runningMe: '/runningMe.webp',
   },
 }
 
