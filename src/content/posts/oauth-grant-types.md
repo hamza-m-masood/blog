@@ -4,7 +4,7 @@ published: 2026-09-15
 draft: false
 description:
   "Client Credentials for machine-to-machine calls, and Device
-  Authorization for screens without a keyboard."
+  Authorization for devices without a browser."
 tags: ["OAuth", "Security", "Authentication"]
 series: "OAuth Simplified"
 ---
@@ -18,12 +18,11 @@ looked at it from different perspectives:
 - **Client**: Strava, the running app that wants to post your workout to
   Facebook on your behalf.
 - **Protected Resource**: Facebook, the API that holds your account.
-- **Authorization Server**: the component this post is about. It is the one
-  that registers Strava, authenticates you, asks whether you are happy for
-  Strava to post on your behalf, and hands Strava the tokens that Facebook
-  will accept.
+- **Authorization Server**: the component that registers Strava,
+  authenticates you, asks whether you are happy for Strava to post on your
+  behalf, and hands Strava the tokens that Facebook will accept.
 
-The OAuth flow would remain mostly the same: You open Strava, Strava sends
+The OAuth flow has remained mostly the same: you open Strava, Strava sends
 you to Facebook's Authorization Server, you log in and approve, and Strava
 gets back an
 [Authorization Code](/posts/introduction-to-oauth#enhancing-security) it
@@ -40,6 +39,8 @@ and
 
 In this post we'll look at three grant types:
 
+- **Authorization Code Grant** — the flow we have used all series. A user
+  delegates access from a device that has a browser.
 - **Client Credentials Grant** — no user at all. The client is acting on
   its own behalf.
 - **Device Authorization Grant** — there's a user, but the device asking
@@ -72,7 +73,7 @@ In [Part 4](/posts/oauth-authorization-server#client-registration) we saw
 that "grant type" is literally a field the Authorization Server stores
 against every registered client. This is because the Authorization Server
 needs to know what grant types a client can support. For example, can a
-client operate without a user and browser present, or must they always be
+client operate without a user and browser present, or must both always be
 present? This creates the ceiling of capabilities for the client.
 
 :::confusedDuck
@@ -113,17 +114,16 @@ Strava. Here there is no "you." The Facebook Page belongs to Strava.
 :::
 
 The client is Strava, and it's asking for access to a resource it already
-owns. You don't own Strava's Facebook account. Strava (the client) does!
+owns. You don't own Strava's Facebook Page. Strava (the client) does!
 
 Broadly speaking, if the client already owns or has the necessary
 authorization to access the private resource, then the user becomes
 irrelevant.
 
-There is no need to support the front channel anymore, since front-channel
-calls go through the browser, and there is no user here, so there is no
-browser. When the resource owner and the client are the same party, the
-entire front channel disappears. No redirect, no login screen, no consent
-screen, and no Authorization Code. The flow becomes very simple.
+When the resource owner and the client are the same party, the entire front
+channel disappears. Front-channel calls go through the browser, and with no
+user there is no browser. No redirect, no login screen, no consent screen,
+and no Authorization Code. The flow becomes very simple.
 
 This means that the client just authenticates directly to the token
 endpoint and asks for a token in one request. This is how the OAuth flow is
@@ -131,7 +131,7 @@ started:
 
 ```bash
 POST /token HTTP/1.1
-Host: https://auth-server.com
+Host: auth-server.com
 Authorization: Basic c3RyYXZhLW1hcmtldGluZzo4ZjNlMWMwMi1hOWI3
 Content-Type: application/x-www-form-urlencoded
 
@@ -165,8 +165,8 @@ Cache-Control: no-store
 
 :::suspiciousDuck
 
-That's it?? The entire Client Credentials Grant Type is made up of two HTTP
-requests?
+That's it?? The entire Client Credentials Grant Type is made up of a single
+request and response?
 
 :::
 
@@ -216,10 +216,10 @@ Never fear! OAuth has an answer.
 
 The Device Authorization Grant, defined in
 [RFC 8628](https://datatracker.ietf.org/doc/html/rfc8628), solves this by
-moving the login step onto a different device you can actually be
-redirected on, like your phone. This means you can delegate your
-authorization to Strava (on the Garmin watch) through your phone, so the
-OAuth flow can continue.
+moving the login step onto a different device that can actually handle a
+redirect, like your phone. This means you can delegate your authorization
+to Strava (on the Garmin watch) through your phone, so the OAuth flow can
+continue.
 
 In other words, this grant type allows you to give consent on a different
 device from the one you started the OAuth flow with.
@@ -234,7 +234,7 @@ Here's how the watch gets your Facebook Access Token:
 
    ```bash
    POST /device_authorization HTTP/1.1
-   Host: https://auth-server.com
+   Host: auth-server.com
    Content-Type: application/x-www-form-urlencoded
 
    client_id=strava-watch&scope=post
@@ -258,7 +258,7 @@ Here's how the watch gets your Facebook Access Token:
    }
    ```
 
-3. If the response is successful, then here is what is displayed on the
+3. **The watch shows you the code.** Here is what is displayed on the
    screen of the Garmin watch:
 
    ```
@@ -266,19 +266,19 @@ Here's how the watch gets your Facebook Access Token:
    Enter code: WDJB-MJHT
    ```
 
-4. You open that URL in a browser on your phone. You log into Facebook like
-   normal, type in `WDJB-MJHT`, and see the same consent screen from
+4. **You approve on your phone.** You open that URL in a browser on your
+   phone, log into Facebook like normal, type in `WDJB-MJHT`, and see the
+   same consent screen from
    [Part 4](/posts/oauth-authorization-server#the-consent-screen) asking
-   whether the watch can post on your behalf. You approve.
-5. **The watch polls for you in the background.** While you were busy on
-   your phone, the watch has been intermittently polling `/token` on the
-   Authorization Server every `interval` seconds (5, in our example) to
-   check whether you're done yet. Here is what the polling request from the
-   Garmin watch looks like:
+   whether the watch can post on your behalf.
+5. **The watch polls in the background while you do this.** The watch
+   intermittently polls `/token` on the Authorization Server every
+   `interval` seconds (5, in our example) to check whether you're done yet.
+   Here is what the polling request from the Garmin watch looks like:
 
    ```bash
    POST /token HTTP/1.1
-   Host: https://auth-server.com
+   Host: auth-server.com
    Content-Type: application/x-www-form-urlencoded
 
    grant_type=urn:ietf:params:oauth:grant-type:device_code&device_code=8V1pr0rJ-4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk&client_id=strava-watch
@@ -296,9 +296,17 @@ Here's how the watch gets your Facebook Access Token:
    }
    ```
 
-6. The moment you approve, the next poll gets an Access Token. Same
-   `access_token` / `refresh_token` shape we've seen since Part 4, no
-   different from what your phone would have received.
+6. **The next poll succeeds.** The moment you approve, the watch's next
+   poll gets back an Access Token. Same `access_token` / `refresh_token`
+   shape we've seen since Part 4, no different from what your phone would
+   have received.
+
+Notice how short that `user_code` is. `WDJB-MJHT` has to be short enough
+for a human to read off a watch face and type into a phone, which also
+makes it short enough to guess.
+[Section 5.1](https://datatracker.ietf.org/doc/html/rfc8628#section-5.1) of
+the spec calls this out and recommends that the Authorization Server
+rate-limit how many codes can be tried at the verification page.
 
 :::note
 
@@ -355,10 +363,10 @@ for.
 ## Conclusion
 
 OAuth was designed to be extremely flexible. It accounts for users not
-being present, devices not supporting redirects on the browser, etc. There
-are still many flows that we did not cover, and new ones are being created
-even today. The three flows we discussed today are the most important, in
-my opinion.
+being present, devices having no browser to redirect to, etc. There are
+still many flows that we did not cover, and new ones are being created even
+today. The three flows we have discussed in this series are the most
+important, in my opinion.
 
 Whichever grant type a client uses, it lands in the exact same place every
 other post in this series has led to: an Access Token, checked by a
