@@ -327,7 +327,7 @@ Server would look like once it receives a token from the client:
 
 ```bash
 POST /introspect HTTP/1.1
-Host: authorization-server:9001
+Host: auth-server
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded
 Authorization: Basic cHJvdGVjdGVkLXJlc291cmNlLTE6cHJvdGVjdGVkLXJlc291cmNlLXNlY3JldC0x
@@ -349,9 +349,9 @@ that describes the token:
   "scope": "post",
   "client_id": "strava",
   "username": "Hamza",
-  "iss": "https://authorization-server:9001/",
+  "iss": "https://auth-server",
   "sub": "hamza",
-  "aud": "https://facebook.com",
+  "aud": "https://api.facebook.com",
   "iat": 1774872000,
   "exp": 1774875600
 }
