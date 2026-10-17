@@ -361,6 +361,7 @@ itself:
   "registration_endpoint": "https://auth-server/register",
   "introspection_endpoint": "https://auth-server/introspect",
   "revocation_endpoint": "https://auth-server/revoke",
+  "jwks_uri": "https://auth-server/jwks",
   "scopes_supported": ["post", "read_email"],
   "response_types_supported": ["code"],
   "grant_types_supported": ["authorization_code", "refresh_token"],
@@ -379,6 +380,10 @@ reading the previous blog posts.
 Everything a client needs is in there. Where to send the user, where to
 exchange the code, where to register itself, which scopes exist, and which
 grant types the server supports.
+
+The `jwks_uri` is the one new entry. It points to the public keys of the
+Authorization Server. We will use it in a future blog post, when we look
+inside Access Tokens.
 
 A client only has to be configured with one value, **the issuer URL**, and
 it can discover the rest. The client builds the metadata URL out of the

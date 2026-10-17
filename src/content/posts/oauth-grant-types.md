@@ -131,7 +131,7 @@ started:
 
 ```bash
 POST /token HTTP/1.1
-Host: auth-server.com
+Host: auth-server
 Authorization: Basic c3RyYXZhLW1hcmtldGluZzo4ZjNlMWMwMi1hOWI3
 Content-Type: application/x-www-form-urlencoded
 
@@ -234,7 +234,7 @@ Here's how the watch gets your Facebook Access Token:
 
    ```bash
    POST /device_authorization HTTP/1.1
-   Host: auth-server.com
+   Host: auth-server
    Content-Type: application/x-www-form-urlencoded
 
    client_id=strava-watch&scope=post
@@ -278,7 +278,7 @@ Here's how the watch gets your Facebook Access Token:
 
    ```bash
    POST /token HTTP/1.1
-   Host: auth-server.com
+   Host: auth-server
    Content-Type: application/x-www-form-urlencoded
 
    grant_type=urn:ietf:params:oauth:grant-type:device_code&device_code=8V1pr0rJ-4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk&client_id=strava-watch
