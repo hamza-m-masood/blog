@@ -207,9 +207,11 @@ and safely sent across the network.
 
 ### JWT Claims
 
-## Symmetric Signatures With HS256
+## Token Signing Method
 
-## Asymmetric Signatures With RS256
+### Symmetric Signatures With HS256
+
+### Asymmetric Signatures With RS256
 
 ## Token Encryption Method
 
