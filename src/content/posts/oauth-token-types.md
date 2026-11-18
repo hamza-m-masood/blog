@@ -11,7 +11,7 @@ series: "OAuth Simplified"
 
 Up until this point I have been mentioning the Access Token, but never went
 into detail into what an Access Token actually looks like. So far we have
-just seen it as a jumble of characters, with a `Bearer` type.:
+just seen it as a jumble of characters, with a `Bearer` type:
 
 ```bash
 HTTP/1.1 200 OK
@@ -85,10 +85,10 @@ expiration time, or what scopes the client was granted.
 Token Introspection has a tendency to overload the Authorziation Server.
 Imagine if you had 1000 Protected Resources and all of them were making
 calls to the same Authorization Server. The solution to the problem of
-creating overloading the Authorization Server is to create a cache. For
-example, the Authorization Server could create a cache of when a token
-expires, so when a Protected Resrouce asks if a token is valid, the request
-could be routed to the cache instead of going directly to the database.
+overloading the Authorization Server is to create a cache. For example, the
+Authorization Server could create a cache of when a token expires, so when
+a Protected Resource asks if a token is valid, the request could be routed
+to the cache instead of going directly to the database.
 
 Having a cache for Access Token metadata can get dangerous. According to
 [RFC 7662 section 4](https://www.rfc-editor.org/rfc/rfc7662#section-4):
@@ -109,10 +109,10 @@ idea?
 :::
 
 Exactly! That's a great idea! These class of Access Tokens are known as
-structured tokens. They include the all the data related to the delegation
-act. Such as the relevant granted scopes of the client, and the expiry!
-This would make the Protected Resource more independant. There would be no
-need to send requests to the Authorization Server when the database is not
+structured tokens. They include all the data related to the delegation act.
+Such as the relevant granted scopes of the client, and the expiry! This
+would make the Protected Resource more independant. There would be no need
+to send requests to the Authorization Server when the database is not
 shared between them since all the token metadata is embedded in the token
 itself!
 
@@ -132,9 +132,9 @@ Let's look at how data can be included inside an Access Token.
 
 ## Structured Tokens
 
-Let's think about the side-effect problems of adding token data into the
+Let's think about the negative side-effects of adding token data into the
 Access Token itself and the Protected Resource not performing Token
-Introspection by sending requests to the Authorization Server:
+Introspection:
 
 - The Protected Resource is not able to validate the authenticity of the
   Access Token. Any user or client could have created the token. The
@@ -159,9 +159,9 @@ statement ("this token belongs to user Alice, may create public Facebook
 posts, expires at 10:15"), then stamps it with a seal only the
 Authorization Server owns. Anyone can read the statement, and anyone can
 check the seal against the notary's publicly posted sample, **but nobody
-else can forge the seal**. We will look at how token signing actually works
-later on in this blog. We will go through two types of token signing in
-this blog:
+else can forge the seal**. The seal only exists with the Authorization
+Server. We will look at how exactly token signing actually works later on
+in this blog. We will go through two types of token signing in this blog:
 
 - Symmetric signing with HS256
 - Asymmetric signing with RS256
@@ -185,9 +185,25 @@ signing it.
 
 As stated, only the Protected Resources needs to parse the token and read
 its contents. The client or anyone else has no business in reading the
-token. This why it should be encrypted from the Authorization Server and
-the Protected Resource should have a method of decrypting and parsing the
-token. We will touch on token encryption near the end of this blog.
+token. This is why the token should be encrypted from the Authorization
+Server and the Protected Resource should have a method of decrypting and
+parsing the token. We will touch on token encryption near the end of this
+blog.
+
+:::staringDuck
+
+Wow! Token signing and token encryption solved the problem of validating
+token authenticity, and also the problem of having the data exposed to
+other than the Protected Resource! That's great!
+
+:::
+
+:::me
+
+Let's look at how we can structure data inside of a token so it can be
+efficiently signed and encrypted.
+
+:::
 
 ## JWT Tokens
 
@@ -195,19 +211,129 @@ There are many ways in which we could structure data inside of an Access
 Token. Turns out there is already a general-purpose, lightweight way to
 securely pass data between separate web entities like the Client, Protected
 Resource and Authorization Server. This method of structuring data inside a
-payload, is called JWT(JSON Web Token).
+payload (Access Token), is called JWT(JSON Web Token).
 
 OAuth predates the existence of JWT. Before JWT, Access Tokens were mainly
-opaque, and causing a lot of load on the Authorization Server as we
-discussed above. When JWT was created, it was clear that this could be used
-for an Access Token.
-
-A JWT is written in JSON, and is shaped in a way where it can be reliably
-and safely sent across the network.
+opaque, and causing a lot of load on the Authorization Server as we saw
+when discussing token introspection. When JWT was created, it was clear
+that this could be used for an Access Token.
 
 ### JWT Claims
 
-## Token Signing Method
+A JWT is written in JSON, and is shaped in a way where it can be reliably
+and safely sent across the network. The names of the JSON fields can be
+anything. The JWT spec has defined a certain set of claims (also known as
+fileds). Here are the main claims that will be available in an Access
+Token:
+
+- `iss`: The issuer of the token. Meaning, who created this token. This is
+  typically the URL of the Authorization Server.
+- `sub`: The subject of the token. Meaning, who the token is about.
+  Typically this would be the owner of the private resource. In our example
+  carried through the blogposts, this would be you, the owner of your
+  Facebook account.
+- `aud`: The audience of the token. Meaning, what OAuth component the token
+  is destined for. In most cases this is the Protected Resource.
+- `exp`: The expiration timestamp of the token.
+- `nbf`: The not-before timestamp of the token. Meaning, when the token
+  will start to be valid.
+- `iat`: The issued-at timestamp of the token. Meaning, when the token was
+  created.
+- `jti`: The unique identifier of the token. This is a value that is unique
+  to each issuer (Authorization Server). This is value is what separates
+  each token. All other values can be the same except this.
+
+If you would like to see the full set of registered claim names defined by
+the OAuth spec, then please view
+[RFC 9068](https://www.rfc-editor.org/info/rfc9068/#section-2.2).
+
+## JWT Structure
+
+Here is an example JWT token:
+
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2F1dGguZXhhbXBsZS5jb20iLCJzdWIiOiJ1c2VyLTEyMzQ1IiwiYXVkIjoiaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20iLCJleHAiOjE4OTM0NTYwMDAsIm5iZiI6MTg5MzQ1MjQwMCwiaWF0IjoxODkzNDUyNDAwLCJqdGkiOiJhMWIyYzNkNC1lNWY2LTc4OTAtYWJjZC1lZjEyMzQ1Njc4OTAifQ.dL90gFA78Oero6mMxAMZmmT6REnj4otiU1TWEhEu-g4
+```
+
+:::sweatingDuck
+
+That's just a jumble of characters. You said that there would be
+structure!!
+
+:::
+
+:::me
+
+Don't worry! Let's try to make sense of these characters.
+
+:::
+
+Notice that there are 3 sections separated by a period:
+
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+.
+eyJpc3MiOiJodHRwczovL2F1dGguZXhhbXBsZS5jb20iLCJzdWIiOiJ1c2VyLTEyMzQ1IiwiYXVkIjoiaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20iLCJleHAiOjE4OTM0NTYwMDAsIm5iZiI6MTg5MzQ1MjQwMCwiaWF0IjoxODkzNDUyNDAwLCJqdGkiOiJhMWIyYzNkNC1lNWY2LTc4OTAtYWJjZC1lZjEyMzQ1Njc4OTAifQ
+.
+dL90gFA78Oero6mMxAMZmmT6REnj4otiU1TWEhEu-g4
+```
+
+Every section is base64 encoded.
+
+:::thinkMe
+
+Let's go through each section of a JWT token and see the purpose.
+
+:::
+
+### Header
+
+The first section of the JWT token is called the `header`. Its purpose is
+to store metadata about the JWT token. Let's decode the first section and
+see the content. Here is the formatted JSON output:
+
+```
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
+
+### Payload
+
+The second section of the JWT token is called te `payload`. Its purpose is
+to store the actual data of the Access Token. Let's decode the first
+section and see the content. Here is the formatted JSON output:
+
+```
+{
+  "iss": "https://auth.example.com",
+  "sub": "user-12345",
+  "aud": "https://api.example.com",
+  "exp": 1893456000,
+  "nbf": 1893452400,
+  "iat": 1893452400,
+  "jti": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+}
+```
+
+We can see the same claims we mentioned in the previous section.
+
+### Signatre
+
+The third and last section of the JWT token is called the `signature`. Its
+purpose is to make sure the JWT token was dispensed by the issuer (`iss`).
+It is used to verify that the token was not changed along the way. In this
+case the issuer is our Authorization Server. It is not possible to simply
+base64 decode the `signature` section.
+
+:::magnifyingglassme
+
+Let's dive deeper into the signature section and see how it truly works.
+
+:::
+
+## Token Signing Methods
 
 ### Symmetric Signatures With HS256
 
