@@ -335,7 +335,95 @@ Let's dive deeper into the signature section and see how it truly works.
 
 ## Token Signing Methods
 
+:::sleepingDuck
+
+Remind me again why token signing is important. I fell asleep when you were
+explaining it before.
+
+:::
+
+:::lastNerveMe
+
+Sure... Let's use our Strava/Facebook example once again.
+
+:::
+
+The client is Strava, and the Protected Resource is Facebook. Strava is
+trying to make a Facebook post on your behalf. Also, let's assume that
+Strava has successfully requested an Access Token from the Authorization
+Server that is an unsigned JWT token meaning, the token has the first two
+sections (header, payload) and not the last (signature).
+
+Some time has passed, and now the JWT token has expired. What is stopping
+Strava from making another self-contained JWT token itself, instead of
+requesting one from the Authorization Server? There is no token
+introspection from the Protected Resource. The Authorization Server is
+can't validate that the token originated from it.
+
+This is why Token Signing is needed. A way for the Protected Resource to
+validate that an Access Token originated from the Authorization Server
+without making a request to the Authorization Server.
+
+Thankfully there is a whole suite of specifications that tell us exactly
+how we can sign tokens. The JSON Object Signing and Encryption standards,
+or JOSE, provides multiples specifications that are useful to us:
+
+- Signatures: JSON Web Signatures (JWS)
+- Encryption: JSON Web Encryption (JWE)
+- Key storage formats: (JSON Web Keys, JWk)
+
+A JWT token with only the first two sections (no signature section) is
+simply an unsigned JWS object with a JSON based payload.
+
+:::readingDuck
+
+It's clear now why a JWT Access Token needs to be signed and the
+specifications that allow us to do that. I would like to see some examples
+of token signing.
+
+:::
+
+:::me
+
+Let's do it!
+
+:::
+
+Although there are many ways to sign a JWT token, let's look at two widely
+used methods:
+
+- Symmetric Signing with HS256
+
+- Asymmetric Signing with RS256
+
+:::note
+
+HS256 and RS256 are simply signature schemes. Meaning a group of algorithms
+that allow you to generate, sign and veriy a key. While a signature
+specification is defining how a signature is formatted, and transported.
+You can think of Symmetric/Asymmetric signing as the signature
+specifications, and HS256/RS256 as the signature schemes.
+
+:::
+
 ### Symmetric Signatures With HS256
+
+The premise of a symmetric signature is to have a shared secret between the
+Authorization Server and the Protected Resource. The Authorization Server
+would sign the token with the shared secret, then the Protected Resource
+would validate the signed token with the same shared secret.
+
+In order to sign an already existing JWT token that is currently unsigned,
+we would first need to modify the head of the JWT token to signify what
+signing algorithm we are using. In this case we are using `HS256`. Here is
+what the JWT header would look like after modification:
+
+```
+{
+  "typ": "JWT",
+  "alg": "HS256"
+}
+```
 
 ### Asymmetric Signatures With RS256
 
