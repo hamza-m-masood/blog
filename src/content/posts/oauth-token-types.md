@@ -294,10 +294,13 @@ see the content. Here is the formatted JSON output:
 
 ```
 {
-  "alg": "HS256",
   "typ": "JWT"
 }
 ```
+
+It simply tells us that the token type is JWT. Other information can also
+be included such as the algorithm used to sign the token. We will see this
+later down in the blog.
 
 ### Payload
 
@@ -424,6 +427,60 @@ what the JWT header would look like after modification:
   "alg": "HS256"
 }
 ```
+
+Next, we need to decide on a shared secret between the Authorization Server
+and Protected Resource.
+
+:::proudDuck
+
+I know! I know! Let's use a shared called "quack"!
+
+:::
+
+:::lastNerveMe
+
+_sigh_... fine.
+
+:::
+
+Normally the shared secret "quack" would be managed by a credential
+management process like [Vault](https://developer.hashicorp.com/vault).
+This is a good method when the Procted Resrouce and the Authorization
+Server and closely tied together. The shared secret can be thought of as an
+API key.
+
+Let's assume now that we have our shared secret configured in both our
+Authorization Server and Protected Resource. Also, we have modified the JWT
+`Header` to include the signing algorithm.
+
+The final step is to actually sign the JWT token. For this example, I will
+use the [JWT library for Golang](https://github.com/golang-jwt/jwt). This
+library gives us a number of helper functions to both sign and encrypt JWT
+tokens.
+
+We will first create a new unsigned JWT token, making sure to specify all
+our claims listed in the `payload` variable. Then, we will sign the token
+by specifying the shared secret:
+
+```
+unsignedToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims(payload))
+accessToken, err := unsignedToken.SignedString([]byte(sharedTokenSecret))
+```
+
+The `accessToken` variable now includes a symmetrically signed JWT token
+with HS256 signing algorithm.
+
+Here is an example of what the `accessToken` might include:
+
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL2FwaS5leGFtcGxlLmNvbSIsImV4cCI6MTg5MzQ1NjAwMCwiaWF0IjoxODkzNDUyNDAwLCJpc3MiOiJodHRwczovL2F1dGguZXhhbXBsZS5jb20iLCJqdGkiOiJhMWIyYzNkNC1lNWY2LTc4OTAtYWJjZC1lZjEyMzQ1Njc4OTAiLCJuYmYiOjE4OTM0NTI0MDAsInN1YiI6InVzZXItMTIzNDUifQ.lC8obUSOx8CXqkKo39BoaaMGg0rB6qLuPiIUNu6U81o
+```
+
+Try to validate the above JWT signature by going to
+[jwt.io](https://www.jwt.io/). Under the "JWT Signature Verification"
+section, type in "quack" and you will notice that it is a valid secret and
+the token is verified:
+![JWT Token signature is valid!](../images//jwt.png "JWT token is valid!")
 
 ### Asymmetric Signatures With RS256
 
