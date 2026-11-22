@@ -292,7 +292,7 @@ The first section of the JWT token is called the `header`. Its purpose is
 to store metadata about the JWT token. Let's decode the first section and
 see the content. Here is the formatted JSON output:
 
-```
+```json
 {
   "typ": "JWT"
 }
@@ -308,7 +308,7 @@ The second section of the JWT token is called te `payload`. Its purpose is
 to store the actual data of the Access Token. Let's decode the first
 section and see the content. Here is the formatted JSON output:
 
-```
+```json
 {
   "iss": "https://auth.example.com",
   "sub": "user-12345",
@@ -421,7 +421,7 @@ we would first need to modify the head of the JWT token to signify what
 signing algorithm we are using. In this case we are using `HS256`. Here is
 what the JWT header would look like after modification:
 
-```
+```json
 {
   "typ": "JWT",
   "alg": "HS256"
@@ -482,8 +482,120 @@ section, type in "quack" and you will notice that it is a valid secret and
 the token is verified:
 ![JWT Token signature is valid!](../images//jwt.png "JWT token is valid!")
 
+The critical thinkers among you might have spotted a problem with this
+approach. The Protected Resource can alos create signed JWT tokens! This is
+because both the Protected Resource and the Authorization Server are using
+the same shared secret for signing tokens. So the Protected Resource can
+sign newly created tokens, mimicing a stamp of approval from the
+Authorization Server.
+
+:::magnifyingglassme
+
+Let's look at another way of signing tokens which addresses the problem of
+non-repudiation (the Protected Resource signing tokens).
+
+:::
+
 ### Asymmetric Signatures With RS256
 
+We are once again going to sign the token with a secret key but this time
+we are going to use
+[public key cryptography](https://www.youtube.com/watch?v=GSIDS_lvRv4).
+
+The Authorization Server will have both the public and private key. When a
+new token is generated, the Authorization Server will sign the token with
+it's private key.
+
+The public key of the Authorization Server is shared with the Protected
+Resource. The signed token can be verified with the public key.
+
+Unlike a shared secret with symmetric signing, the Protected Resource only
+has access to the Authorization Server's public key, so it has no way of
+generating it's own token.
+
+This is what a generated key pair looks like. It is a 2048-bit RSA key,
+which is the minimum recommended size. It is stored in the JSON-based JWK
+format:
+
+```json
+{
+  "alg": "RS256",
+  "d": "EJ4DY1yAe-D9dWTm261KYiewmVBTzuo4pSrWXmnkl2OfPPpkeokBYguFlZKlRIminF1fJMqzD79uOXOJHWsvYAjOEguubrFACZPxgLtQdDQHQSUxKbD0v9MdnwOwDDeB7OKlhpPqg5X2zgYAPGBWhyIQGbkI-Rc8LERCKYsHCT-SkFGMPcOGQJb-It3SHFEbYpBHNH0wtGQvQtgVYZskokFZ0Pzz1kmPs-uLn3IfaddSal0SdIv1LhyzKadq9j8tchP3KuhYY2BzVMoh5OqHYiUGB1Fz4PQbB53FAHfWGjY_cBx029t9TjRxz22R4A68CWBuO2zdL6zJFrT_d-W4Ow",
+  "e": "AQAB",
+  "n": "xuf1pzRCQZslclQwb4l1lxjm5lHEcYa9WeGCNJULafvWOknFpPjVqg6WF89Rp0BiCG5SkGx35523ZakzFFRqyWOSsRYxWHzP0yzV5WcNZ4SpeDFrpstFelEQyK2UMMMLO25TZJ4OnIw5wmWdOJQywL4bh5O2kSBkKRKLH2fpkdx_38VrJP9d3xcNzsKGuU9cYeE3F5FdcxLZD94VAWP7WkutKdPaGNOJvxJZrmbYr8fylP04v18sgL8X26Js3ngiDrtYsBIPzfQ_5HGdxKDRJwjqClBOMDoAKzjqOaChI_XOXX5CS8DDyNZOAEdY2fTDDjX5k7FSjjjU-Iva0X6KmQ",
+  "kty": "RSA",
+  "kid": "authserver"
+}
+```
+
+Notice the `kid`, meaning key ID. In a production system, if the
+Authorization Server has multiple Protected Resources registered, then a
+unique key should be registered for each service.
+
+Now that we have our public, private key pair, we are able to sign the
+token with the private key and send the public key to the private resource.
+Also, remembering to modify the header of the JWT token, as we did before:
+
+```json
+{
+  "typ": "JWT",
+  "alg": "RS256",
+  "kid": "authserver"
+}
+```
+
+Notice that we have the key ID embedded in the header. This is to help the
+Protected Resource make sure that you used the right key.
+
+:::suspiciousDuck
+
+Wait... if I had 100 Protected Resources, would I have to update each one
+when generating a new public key from the Authorization Server? That's a
+lot of work!
+
+:::
+
+Thankfully the OAuth spec gives us a way around by providing a `well-known`
+URL. It returns a JSON document describing the issuer,
+authorization_endpoint, token_endpoint, scopes_supported and so on. It also
+has a `jwks_uri` field pointing to where the public signing keys are
+published. So your private resources can automatically grab the public
+certificate instead of you having to manually change it.
+
+:::joyfulDuck
+
+I'm glad I finally understand the concepts of symmetric and asymmetric
+token signing. That was fun!
+
+:::
+
+:::sweatingDuck
+
+What about token encryption? We can now prove that the token originated
+fromt he Authorization Server, but everyone can still read the contents of
+the token! Even the OAuth client. The client has no business reading the
+token!
+
+:::
+
+:::dabMe
+
+Let's discuss Token Encryption!
+
+:::
+
 ## Token Encryption Method
+
+To make our life easy, JOSE also provides an encryption mechanism called
+JSON Web Encryption (JWE). Instead of a 3 part JWT structure, you now have
+a 5 part structure. Covering the JWE structure is a bit much for this blog
+post. But for an advanced exercise, try adding JWE to the JWT tokens
+mentioned.
+
+First, give the resource server a key pair and give the authorization
+server access to the public key portion of this key pair. Then use the
+public key to encrypt the contents of the token using JWE. Finally, have
+the resource server decrypt the contents of the token using its own private
+key and pass the payload of the token along to the application.
 
 ## Token Lifecycle
