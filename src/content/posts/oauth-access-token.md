@@ -1,5 +1,5 @@
 ---
-title: "Part 6 - OAuth Token Types"
+title: "Part 6 - OAuth Access Token"
 published: 2026-09-20
 draft: false
 description: ""
@@ -599,3 +599,65 @@ the resource server decrypt the contents of the token using its own private
 key and pass the payload of the token along to the application.
 
 ## Token Lifecycle
+
+The OAuth spec defines a token revocation protocol. The endpoint path is
+typically `/revoke` and the token is sent as a form encoded paramter in the
+body. The client would authenticate as it typically does when sending a
+request to the Authorization Server. Here is an example:
+
+```
+POST /revoke HTTP/1.1
+Host: auth-server:9001
+Accept: application/json
+Content-type: application/x-www-form-encoded
+Authorization: Basic c3RyYXZhLWNsaWVudDpzdHJhdmEtY2xpZW50LXNlY3JldAo=
+```
+
+This will only work on opaque, stateful tokens that are stored on the
+Authorization Server. Since the Authorization Server has full control over
+the token lifecycle.
+
+If the token is stateless (JWT) then typically the token is rejected when
+it has hit it's expiry. The reovcation endpoint won't work in this case,
+since there is no token introspection. All the information is contained
+already in the token.
+
+:::note
+
+Note that the client is the one who sends a request to practively revoke a
+token. Not the Protected Resource.
+
+:::
+
+## Stateful vs Stateless Tokens
+
+Lastly, and to summarize let's discuss the two token types we talked about
+in this blog: Stateful tokens, and stateless tokens.
+
+**Stateful tokens** are seen as Opaque tokens tokens since these tokens are
+stored on the Authorization Server, and need to be queried by the Protected
+Resource, usually through token introspection.
+
+**Stateless tokens** do not need to be stored on the Authorization Server
+and have all the needed information self-contained, like a JWT token.
+
+Let's compare them:
+
+|                  | Stateful (opaque)                    | Stateless (JWT)                          |
+| ---------------- | ------------------------------------ | ---------------------------------------- |
+| Data lives       | On the Authorization Server          | In the token                             |
+| Validation       | Call the Authorization Server        | Verify the signature locally             |
+| Revocation       | Easy: delete the record              | Hard: valid until `exp`                  |
+| Scalability      | Authorization Server is a bottleneck | No Authorization Server call per request |
+| Size             | Small                                | Larger                                   |
+| Contents visible | No                                   | Yes, unless encrypted                    |
+
+## Conclusion
+
+We talked about how tokens can be opaque (stateful), or JWT (stateless). If
+the token is a JWT, the token can be signed, and encrypted. We went through
+two examples of how to sign a JWT: symmetric, and asymmetric signing. We
+also touched on how to encrypt a JWT token.
+
+Finally, we mentioned the token revocation protocol and compared the
+benefits and drawbacks of stateful and stateless tokens.
