@@ -1,5 +1,5 @@
 ---
-title: "Part 6 - OpenID Connect"
+title: "Part 7 - OpenID Connect"
 published: 2026-09-20
 draft: false
 description:
@@ -12,58 +12,73 @@ series: "OAuth Simplified"
 
 ## Introduction
 
-Part 4 waved at this twice. Once when the
-[metadata document](/posts/oauth-authorization-server#authorization-server-metadata)
-turned out to have an OpenID Connect twin, and again when the user
-authenticated to the Authorization Server and we noted that OAuth says
-nothing about _how_ that happened or how the client would ever learn who
-they were. [Part 6](/posts/oauth-token-types) ended on the same gap from
-the other side: the client is not even allowed to read its own Access
-Token, so it cannot go looking for the answer in there.
+OAuth 2.0 is a **delegation protocol**. It is used to gather the consent of
+a resource owner (user) and performa an action on a secure system
+(Protected Resource). Because of this functionality, many engineers would
+confuse OAuth 2.0 as an authentication protocol. This is totally flase.
 
-This post closes it, and it is the last one in the series.
+:::warning
 
-Strava has a new requirement. Alongside posting to your Facebook feed, it
-wants a **Log in with Facebook** button. Not "let me act on your behalf" —
-that part is solved — but "tell me who you are so I can create your Strava
-account."
+OAuth 2.0 is not an authentication protocl!
+
+:::
+
+In this blog post we will discuss how you can introduce user authentication
+on top of an already working OAuth 2.0 setup.
+
+Let's dive in!
+
+## Why OAuth 2.0 is Not An Authentication Protocol
+
+Confusing OAuth 2.0 with supporting authentication is understandable. OAuth
+2.0 embeds many authentication events inside, and OAuth 2.0 itself can be
+embedded in an authentication protocol.
 
 :::confusedDuck
 
-Surely that is the same thing? Strava already gets an Access Token that the
-Authorization Server issued after I logged in. Does that not prove I logged
-in?
+Okay... but what exactly is authentication?
 
 :::
 
-:::me
+Authenticaton tells a system two things:
 
-It does not, and this is the single most important idea in the post.
-Everything else follows from it, so let's take it slowly.
+- Who the user is.
+- If the user is currently present and using the application.
+
+An authentication protocl would most likely tell you a number of things
+about the user, such as the unique identifier of the logged in user, the
+first name, last name, email adress. OAuth 2.0 does not tell you any of
+that. Neither does OAuth 2.0 guarantee that the user is currently present
+and is using using the application, or who the user is. All OAuth 2.0 is
+designed to do is obtaining an access token for use where the user is not
+able to interactively authorize the application.
+
+For example, lets say you are logged into Strava and you are also logged
+into Facebook. Althrough Strava can make Facebook posts on your behalf
+using OAuth 2.0, you are not actively facilitating the connection between
+Strava and Facebook. This is where the power of OAuth 2.0 lies.
+
+:::confusedDuck
+
+What happens if we just forget about user authentication in the above
+Strava/Facebook example and assume that there is no user login at all. What
+could go wrong?
 
 :::
 
-## Why An Access Token Is Not A Login
+:::susMe
 
-Here is the tempting shortcut. Strava finishes an ordinary Authorization
-Code flow, gets an Access Token, calls some Facebook API that returns the
-user's profile, and logs them in as whoever comes back.
-
-:::coverEyesDuck
-
-```javascript
-// Do NOT do this.
-const token = await exchangeCodeForAccessToken(code);
-const profile = await fetch("https://api.facebook.com/me", {
-  headers: { Authorization: `Bearer ${token}` },
-}).then((r) => r.json());
-
-loginAs(profile.id); // ← Strava has just been had
-```
+Let's find out!
 
 :::
 
-That code has a hole in it, and it is not a subtle one.
+Let's use the same example that we used [in the first blog](insert link
+here) where Strava makes a Facebook post on your behalf using Authorization
+code Flow. Let's say Strava finishes an ordinary Authorization Code flow,
+gets an Access Token, and calls some Facebook API that returns the user's
+profile.
+
+Attacker duck sees a vulnerability!
 
 :::attackerDuck
 
@@ -73,19 +88,13 @@ token and paste it into _your_ login attempt. heheee!
 
 :::
 
-:::me
+If Strava were to calls the Facebook API with that the attacker's token,
+then Strava gets back the attacker's profile. Strava had no way to tell the
+tokens apart, because an Access Token does not say who it was issued to.
 
-And Strava calls the API with that token, gets the attacker's profile back,
-and logs you in as the attacker — or, run the other way round, logs the
-attacker in as you. Strava had no way to tell the tokens apart, because an
-Access Token does not say who it was issued to.
-
-:::
-
-This is called a **token substitution** attack, and it is old enough to
-have its own section in the original OAuth spec.
-[RFC 6749 section 10.16](https://www.rfc-editor.org/rfc/rfc6749#section-10.16)
-says it plainly:
+This is called a **token substitution** attack. It has its own section in
+the original OAuth spec.
+[RFC 6749 section 10.16](https://www.rfc-editor.org/rfc/rfc6749#section-10.16):
 
 > For public clients using implicit flows, this specification does not
 > provide any method for the client to determine what client an access

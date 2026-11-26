@@ -604,6 +604,11 @@ article img {
     @apply border-2 border-foreground/80 p-2.5;
   }
 
+  /* Wide tables scroll inside themselves instead of stretching the page */
+  table {
+    @apply block max-w-full overflow-x-auto;
+  }
+
   th {
     @apply uppercase text-left;
   }
