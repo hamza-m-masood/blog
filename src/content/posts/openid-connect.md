@@ -4,8 +4,8 @@ published: 2026-09-20
 draft: false
 description:
   "Why an Access Token can never tell you who the user is, what the ID
-  Token adds, and how nonce, aud and the UserInfo sub-check close the token
-  substitution attack."
+  Token adds, and how nonce, aud and the UserInfo sub-check stop code
+  injection and token substitution."
 tags: ["OAuth", "Security", "Authentication"]
 series: "OAuth Simplified"
 ---
@@ -36,7 +36,7 @@ embedded in an authentication protocol.
 
 :::confusedDuck
 
-Okay... but what exactly is authentication?
+What exactly is authentication?
 
 :::
 
@@ -50,7 +50,7 @@ about the user, such as the unique identifier of the logged in user, the
 first name, last name, email adress. OAuth 2.0 does not tell you any of
 that. Neither does OAuth 2.0 guarantee that the user is currently present
 and is using using the application, or who the user is. All OAuth 2.0 is
-designed to do is obtaining an access token for use where the user is not
+designed to do is obtaining an Access Token for use where the user is not
 able to interactively authorize the application.
 
 For example, lets say you are logged into Strava and you are also logged
@@ -60,76 +60,160 @@ Strava and Facebook. This is where the power of OAuth 2.0 lies.
 
 :::confusedDuck
 
-What happens if we just forget about user authentication in the above
-Strava/Facebook example and assume that there is no user login at all. What
-could go wrong?
+What if I want to login to my Strava running app through Facebook?
 
 :::
 
-:::susMe
+:::me
 
-Let's find out!
-
-:::
-
-Let's use the same example that we used [in the first blog](insert link
-here) where Strava makes a Facebook post on your behalf using Authorization
-code Flow. Let's say Strava finishes an ordinary Authorization Code flow,
-gets an Access Token, and calls some Facebook API that returns the user's
-profile.
-
-Attacker duck sees a vulnerability!
-
-:::attackerDuck
-
-I have my own Strava account, and I have my own Facebook account. So I
-start a flow, get an Access Token issued for _me_, and then I take that
-token and paste it into _your_ login attempt. heheee!
+This is not possible with OAuth 2.0 alone.
 
 :::
 
-If Strava were to calls the Facebook API with that the attacker's token,
-then Strava gets back the attacker's profile. Strava had no way to tell the
-tokens apart, because an Access Token does not say who it was issued to.
+Signing into Strava with your Facebook account would require authentication
+which OAuth 2.0 inherently does not support. Here is what the login screent
+would look like:
 
-This is called a **token substitution** attack. It has its own section in
-the original OAuth spec.
-[RFC 6749 section 10.16](https://www.rfc-editor.org/rfc/rfc6749#section-10.16):
+![Option to sign in with Facebook on Strava.](../images/sign-in-with-facebook.png "Option to sign in with Facebook on Strava.")
 
-> For public clients using implicit flows, this specification does not
-> provide any method for the client to determine what client an access
-> token was issued to.
+It should be now apparent that this will not be possible with any of the
+OAuth flows we just discussed. As mentioned above, in order for us to
+implement the "sign in with Facebook" login method on Strava, we would need
+to know who the user is, and if the user is curerntly present, and using
+the application.
 
-and then, in the same section:
+The rest of this blog post will discuss how this "Sing In With Facebook"
+button can be implemented by adding extra features on top of OAuth 2.0. We
+are now taking advantage of the extensible nature of OAuth!
 
-> Any public client that makes the assumption that only the resource owner
-> can present it with a valid access token for the resource is vulnerable
-> to this type of attack.
+:::dabMe
 
-:::pointingDuck
-
-Read that first quote once more. The problem is not that the token is
-_forgeable_ — the attacker's token is completely genuine. The problem is
-that it does not say **who it is for**.
+Let's find out how this would work!
 
 :::
 
-That is the whole gap. Everything this series built — scopes, PKCE,
-introspection, `state` — was about controlling access to a resource. None
-of it produces a statement, addressed to Strava, saying "this person
-authenticated." An Access Token is a key to a room. It is not an ID card,
-and it never was.
+## Figuring Out An Authentication Protocol
 
-:::note
+:::me
 
-The slogan usually attached to this is "OAuth is not authentication." That
-is a good summary, but it is not a quote from any specification — the specs
-make the narrower and more useful point above. If you want the citation, it
-is RFC 6749 §10.16, not a slogan.
+Let's work from first principles and build our way up to an authentication
+protocl that we are fully able to trust and work seemlessly with Oauth 2.0.
 
 :::
 
-## One Word Turns It On
+First of all we need a _user_, that has a Facebook email and password of an
+existing Facebook account.
+
+Next, we need a trusted place to store and validate user credentials. In
+this case, the user's Facebook email and password. Let's say we have a
+server which will store multiple Facebook emails and passwords for various
+users. This server will simply validate credentials when a request with a
+Facebook email and password comes in. Let's call this server an \_Identity
+Provider.
+
+So now we have a _user_ with a Facebook email and password. We also have an
+Identity Provider which can store the user's credentials and validate them
+at login. The final piece we need for this authentication protocol is
+Facebook itself! We will simply call Facebook the _Relying Party_.
+
+:::readingDuck
+
+We have the user, Identity Provider, and a Relying Party for our
+authentication protocol. It would be nice if we could walk through a simple
+authentication flow so these elements become more concrete.
+
+:::
+
+Here is what a simple authentication flow would look like:
+
+1. User sends an authentication request to the Identity provider with their
+   credentials to access the Relying Party.
+2. Identity Provider successfully validates the credentials.
+3. Identity Provider redirects the user to their account on the Protected
+   Resource.
+
+:::armsCrossedDuck
+
+What's the point of having the Identity Provider anyway? Can't the Relying
+Party handle it's own user credentials?
+
+:::
+
+:::me{align="right"}
+
+Yes, if you have only one application, it would make sense. But what if you
+now have multiple applications? Let's say you have Instagram, and Snapchat
+alongside Facebook. It's better to have a central place to manage
+credentials in this case. You will have one place to control users across
+multiple applications.
+
+:::
+
+We now have the ability to sign in users and redirect them to the Protected
+Resource.
+
+:::eyesDuck{align="left"}
+
+Okaaay, it's nice that we have a simple authentication protocol but this
+has nothing to do with OAuth 2.0.
+
+:::
+
+:::starEyesMe{align="right"}
+
+Patience! We are just about to get to the juicy part of the blog!
+
+:::
+
+## Extending OAuth 2.0 for User Authentication
+
+Let's see how we can match our authentication protocol elements within
+OAuth 2.0.
+
+Here are the elements of OAuth 2.0 that should be very familiar at this
+point:
+
+- Resource Owner
+- Authorization Server
+- Client
+- Protected Resource
+
+Here are the elements of our authentication protocol we discussed in the
+last section:
+
+- User
+- Identity Provider
+- Relying Party
+
+The Resource Owner from OAuth matches quite nicely with the user in our
+authentication protocol. Same goes for the Authorization Server and the
+Identity Provider.
+
+The same can't be said for the Relying Party in our authentication
+protocol. The Relying Party could either be matched with the OAuth Client
+or the OAuth Protected Resource.
+
+Here are the matchings between both protocols:
+
+- User ➡️ OAuth Resource Owner
+- Identity Provider ➡️ OAuth Authorization Server
+- Relying Party ➡️ OAuth Protected Resource / OAuth Client
+
+:::cryingDuck
+
+The Relying Party from our authentication protocol doesn't cleanly match a
+single element in OAuth 2.0. Which remaining OAuth component should Relying
+Party match with? The OAuth Client or the OAuth Protected Resource?
+
+:::
+
+:::me
+
+Let's try both!
+
+:::
+
+### Relying Party As The Protected Resource
 
 OpenID Connect is a layer on top of OAuth 2.0 that fills exactly this gap.
 Its own abstract describes it as "a simple identity layer on top of the
@@ -257,9 +341,9 @@ Now the payload:
 
 That is the fix, and it is worth stopping on. The ID Token is **addressed
 to the client**. Strava checks that `aud` contains its own `client_id` and
-rejects the token otherwise, so the attacker's ID Token — issued with `aud`
-set to the attacker's own client — cannot be pushed into your login. The
-thing an Access Token could never say is the first thing an ID Token says.
+rejects the token otherwise, so an ID Token issued to some other client
+cannot be pushed into your login. The thing an Access Token could never say
+is the first thing an ID Token says.
 
 :::
 
@@ -365,20 +449,20 @@ Authorization: Bearer 987tghjkiu6trfghjuytrghj
 ```
 
 `sub` is the only claim guaranteed to be in that response, and it is there
-for a reason that takes us straight back to the attack at the top of this
-post.
+for a good reason.
 
 :::suspiciousDuck
 
-Wait. That call was authenticated with the **Access Token**. That is the
-exact thing you told me could belong to an attacker.
+Wait. That call was authenticated with the **Access Token**. You told me an
+Access Token does not say who it was issued to.
 
 :::
 
 :::me
 
-Yes. You have just re-derived the attack, and the spec has a hard rule for
-precisely this.
+Right. If an Access Token ever reaches Strava by some route other than its
+own token request, for example sent up by a mobile app, it could have been
+issued to anyone. The spec has a hard rule for precisely this.
 
 :::
 
@@ -443,12 +527,13 @@ different one.
 :::
 
 The thing `nonce` catches that `state` cannot is **authorization code
-injection**: an attacker who obtains a valid authorization code and injects
-it into your session. A returned `state` proves the response belongs to a
-flow you started. It says nothing about where the _code_ inside that
-response came from. Because `nonce` travels back inside a token the OpenID
-Provider signed, an injected code produces an ID Token whose `nonce` does
-not match the one Strava stored — and the flow dies.
+injection**, the attack from the top of this post: an attacker who obtains
+a valid authorization code and injects it into your session. A returned
+`state` proves the response belongs to a flow you started. It says nothing
+about where the _code_ inside that response came from. Because `nonce`
+travels back inside a token the OpenID Provider signed, an injected code
+produces an ID Token whose `nonce` does not match the one Strava stored —
+and the flow dies.
 
 :::note
 
@@ -608,12 +693,13 @@ not even permitted to look inside its Access Token to guess.
 
 OpenID Connect adds exactly one thing to close that: a second token, signed
 by the provider and addressed to the client by `client_id`. Every other
-piece follows from those two properties. `aud` is what makes an attacker's
-token useless in your login. `nonce` is what makes an injected code fail.
-The `sub` check on the UserInfo response is what stops a swapped Access
-Token from silently changing whose profile you read. Take away the
-signature or the audience and all three protections collapse back into the
-broken snippet at the top of this post.
+piece follows from those two properties. `nonce` is what makes an injected
+code, like the one at the top of this post, fail. `aud` is what stops an ID
+Token issued to another client from being used in your login. The `sub`
+check on the UserInfo response is what stops a swapped Access Token from
+silently changing whose profile you read. Take away the signature or the
+audience and all three protections collapse back into the broken login at
+the top of this post.
 
 And it is a genuine layer, not a replacement. The redirect, the
 Authorization Code, PKCE, the token endpoint, refresh tokens, scopes,
