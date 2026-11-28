@@ -114,7 +114,9 @@ Provider.
 So now we have a _user_ with a Facebook email and password. We also have an
 Identity Provider which can store the user's credentials and validate them
 at login. The final piece we need for this authentication protocol is
-Facebook itself! We will simply call Facebook the _Relying Party_.
+Facebook itself! We will simply call Facebook the \_Relying Party. A
+Relying Party simply wants to authenticate a user through an external
+Identity Provider.
 
 :::readingDuck
 
@@ -167,8 +169,8 @@ Patience! We are just about to get to the juicy part of the blog!
 
 ## Extending OAuth 2.0 for User Authentication
 
-Let's see how we can match our authentication protocol elements within
-OAuth 2.0.
+Let's see how we can match our authentication protocol elements with
+elements of OAuth 2.0.
 
 Here are the elements of OAuth 2.0 that should be very familiar at this
 point:
@@ -209,16 +211,103 @@ Party match with? The OAuth Client or the OAuth Protected Resource?
 
 :::me
 
-Let's try both!
+Let's try both! But first let's clear up the meaning behind the "Login With
+Facebook" button
 
 :::
 
-### Relying Party As The Protected Resource
+Let's go back to our Strava/Facebook example for a moment and only focus on
+the OAuth components for now:
 
-OpenID Connect is a layer on top of OAuth 2.0 that fills exactly this gap.
-Its own abstract describes it as "a simple identity layer on top of the
-OAuth 2.0 protocol," and it is a genuine layer — the flow you already know
-does not change shape.
+Here are the OAuth components:
+
+- User: you
+- Client: Strava
+- Protected Resource: Facebook API
+- Authorization Server: Facebook's own server that handles all the
+  responsibilites of an [Authorization Server](insert link to auth server
+  blog)
+
+Notice the difference between the Protected Resource and the Authorization
+Server. They are both owned by Facebook, but the Protected Resource is
+simply a Facebook API to make posts. Facebook also has it's own
+Authorization Server that can dispense Access Tokens. They are two
+different OAuth entities.
+
+If the user clicks on "Login with Facebook", this would mean that the
+Facebook Authorization Server needs to be extended to support this
+functionality. NOT the Facebook API (Protected Resource). This is why the
+Identity Provider is matching with the Authorization Server. I am
+mentioning this point so people do not get confused with the "login with
+Facebok" button. After pressing this button, the request will go straight
+to the Facebook Identity Provider, which can be an extension of the
+Facebook Authorization Server. We will see exactly how this is done later
+on in this blog.
+
+### Relying Party As The OAuth Protected Resource
+
+Let's maps out all the elements involved, and walk through a flow of the
+user pressing the "Login With Facebook" button on Strava. We will assume
+that all OAuth enttities have been extended with functionalities to perform
+the authentication flow we mentioned in the previous section.
+
+- OAuth Resource Owner (authentication flow user): You
+- OAuth Client: Strava
+- OAuth Protected Resource (authentication flow Relying Party): Facebook
+  API
+- OAuth Authorization Server (authentication flow Identity Provider):
+  Facebook Authorization
+
+1. User goes to the Strava website.
+2. User clicks on the "Login with Facebook" button
+3. User is redirected to the Facebook Identity Provider
+4. User logs in successfully
+5. User is redirected to the Relying Party, which in this case is the
+   Facebook API!
+
+:::gaspDuck
+
+That's not what we want!!
+
+:::
+
+The user should have been redirected back to Strava. Not the Facebook API.
+The Facebook API doesn't even have a UI to show the user. It's just an API
+to make a Facebook post on the user's behalf.
+
+:::runningMe
+
+Time to jog your brain! Try to pause here and think exactly what went
+wrong. Reread the "Figuring Out an Authentiation Protocol" section again.
+
+:::
+
+The root cause of the problem is that our authentication protocol is
+designed to redirect the user to the Relying Party after successful login.
+In this case, the relying party is the Facebook API.
+
+This problems also breaks the OAuth protocol. The user is now directly
+communicated with the Protected Resource (Relying party). The user should
+only directly communicate with either the Client or the Authorization
+Server (Identity Provider). Never the Protected Resource. Thinking about
+our example: there is no need for the user to interact with the Facebook
+API in order for Strava to make a Facebook post on the user's behalf.
+
+:::sickDuck
+
+What a mess! Let's see if we can fix this redirect problem in the next
+section.
+
+:::
+
+### Relying Party As The OAuth Client
+
+---
+
+There is also another OpenID Connect is a layer on top of OAuth 2.0 that
+fills exactly this gap. Its own abstract describes it as "a simple identity
+layer on top of the OAuth 2.0 protocol," and it is a genuine layer — the
+flow you already know does not change shape.
 
 The trigger is a single scope value:
 
